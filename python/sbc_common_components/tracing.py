@@ -18,11 +18,11 @@ import inspect
 from flask import jsonify
 
 import opentracing
-from opentracing.ext import tags
 from opentracing.propagation import Format
 
 from flask_opentracing import FlaskTracing
 from jaeger_client import Config as JaegerConfig
+from sbc_common_components.trace_tags import TraceTags as tags
 
 
 class ApiTracer:
@@ -128,10 +128,10 @@ class ApiTracing(FlaskTracing):
         span.set_tag(tags.ERROR, 'true')
         span.log_kv(
             {
-                'event': 'error',
-                'error.object': exception_name,
-                'error.message': error_message,
-                'error.trace_back': trace_back,
+                tags.EVENT: 'error',
+                tags.ERROR_OBJECT: exception_name,
+                tags.ERROR_MESSAGE: error_message,
+                tags.ERROR_TRACE_BACK: trace_back,
             }
         )
         scope.close()
@@ -156,9 +156,9 @@ class ApiTracing(FlaskTracing):
 
             span.log_kv(
                 {
-                    'class.name': function.__class__.__name__,
-                    'function.name': function.__name__,
-                    'function.parameters': '(' + ', '.join('%s' % p for p in func_args) + ' )',
+                    tags.CLASS_NAME: function.__class__.__name__,
+                    tags.FUNCTION_NAME: function.__name__,
+                    tags.FUNCTION_PARAMETERS: '(' + ', '.join('%s' % p for p in func_args) + ' )',
                 }
             )
             # TODO need to make this span as current active span in the tracer
@@ -181,11 +181,8 @@ class ApiTracing(FlaskTracing):
             return True
 
     @staticmethod
-    def service_trace(decorator, predicate=None):
+    def service_trace(decorator, predicate=True):
         """Apply a decorator to all methods that satisfy a predicate, if given."""
-
-        if predicate is None:
-            predicate = lambda _: True
 
         def wrapper(cls):
             for name, method in inspect.getmembers(cls, inspect.ismethod or inspect.isfunction):
@@ -195,4 +192,3 @@ class ApiTracing(FlaskTracing):
             return cls
 
         return wrapper
-

@@ -16,15 +16,22 @@
 
 This file manage all tracing tags.
 """
-from enum import Enum
 
 
-class TraceTags(Enum):
+class TraceTags:
     """Manages all tags for tracing. """
 
-    ERROR = "error"
-    HTTP_STATUS_CODE = "http.status_code"
-    NR_NUMBER = "nr.number"
-    USER = "login.user"
-    DATABASE_QUERY = "database.query"
-    DATABASE_QUERY_ANSWER = "database.answer"
+    HTTP_STATUS_CODE = 'http.status_code'
+    NR_NUMBER = 'nr.number'
+    USER = 'login.user'
+    DATABASE_QUERY = 'database.query'
+    DATABASE_QUERY_ANSWER = 'database.answer'
+    EVENT = 'event'
+    ERROR = 'error'
+    ERROR_OBJECT = 'error.object'
+    ERROR_MESSAGE = 'error.message'
+    ERROR_TRACE_BACK = 'error.trace_back'
+    CLASS_NAME = 'class.name'
+    FUNCTION_NAME = 'function.name'
+    FUNCTION_PARAMETERS = 'function.parameters'
+    COMPONENT = 'component'
