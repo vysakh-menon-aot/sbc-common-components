@@ -28,7 +28,7 @@ setup(
     license=read('LICENSE'),
     long_description=read('README.md'),
     zip_safe=False,
-    packages=['flask_opentracing', 'tests'],
+    packages=['src', 'tests'],
     platforms='any',
     install_requires=['Flask-OpenTracing==1.0.0', 'opentracing>=2.0,<2.1'],
     dependency_links=[
