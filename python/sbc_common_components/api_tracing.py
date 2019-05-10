@@ -75,6 +75,19 @@ class ApiTracing(FlaskTracing):
         scope.close()
 
     @staticmethod
+    def _get_class_name_that_defined_method(meth):
+        if inspect.ismethod(meth):
+            for cls in inspect.getmro(meth.__self__.__class__):
+                if cls.__dict__.get(meth.__name__) is meth:
+                    return cls.__qualname__
+            meth = meth.__func__  # fallback to __qualname__ parsing
+        if inspect.isfunction(meth):
+            cls = getattr(inspect.getmodule(meth), meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
+            if isinstance(cls, type):
+                return cls.__qualname__
+        return None
+
+    @staticmethod
     def enable_tracing(function):
         """Make a function/method run the class' tracing function/method before running."""
 
@@ -94,20 +107,22 @@ class ApiTracing(FlaskTracing):
 
             span.log_kv(
                 {
-                    tags.CLASS_NAME: function.__class__.__name__,
+                    tags.CLASS_NAME: ApiTracing._get_class_name_that_defined_method(function),
                     tags.FUNCTION_NAME: function.__name__,
-                    tags.FUNCTION_PARAMETERS: '(' + ', '.join('%s' % p for p in func_args) + ' )',
+                    tags.FUNCTION_ARGS: ', '.join('%s' % p for p in func_args),
+                    tags.FUNCTION_KWARGS: ', '.join(['{}={!r}'.format(k, v) for k, v in func_kwargs.items()]),
                 }
             )
             scope.close()
 
             retval = function(*func_args, **func_kwargs)
 
-            span_ctx = tracer.active_span
-            scope = tracer.start_active_span('{0}.{1}'.format(function.__name__, 'response'), child_of=span_ctx)
-            span = scope.span
-            span.log_kv({tags.FUNCTION_RESPONSE: retval.__repr__()})
-            scope.close()
+            if retval is not None:
+                span_ctx = tracer.active_span
+                scope = tracer.start_active_span('{0}.{1}'.format(function.__name__, 'response'), child_of=span_ctx)
+                span = scope.span
+                span.log_kv({tags.FUNCTION_RESPONSE: retval.__dict__})
+                scope.close()
             return retval
 
         return wrapper
@@ -126,7 +141,7 @@ class ApiTracing(FlaskTracing):
             return True
 
     @staticmethod
-    def service_trace(decorator, predicate=True):
+    def service_trace(decorator, predicate: bool = True):
         """Apply a decorator to all methods that satisfy a predicate, if given."""
 
         def wrapper(cls):

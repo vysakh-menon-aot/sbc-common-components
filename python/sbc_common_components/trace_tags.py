@@ -33,6 +33,7 @@ class TraceTags:
     ERROR_TRACE_BACK = 'error.trace_back'
     CLASS_NAME = 'class.name'
     FUNCTION_NAME = 'function.name'
-    FUNCTION_PARAMETERS = 'function.parameters'
+    FUNCTION_ARGS = 'function.args'
+    FUNCTION_KWARGS = 'function.kwargs'
     FUNCTION_RESPONSE = 'function.response'
     COMPONENT = 'component'
