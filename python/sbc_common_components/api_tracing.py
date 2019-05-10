@@ -14,7 +14,6 @@
 """Function to tracing all methods, functions or exceptions."""
 import functools
 import inspect
-import json
 import opentracing
 
 from opentracing.propagation import Format
@@ -107,7 +106,7 @@ class ApiTracing(FlaskTracing):
             span_ctx = tracer.active_span
             scope = tracer.start_active_span('{0}.{1}'.format(function.__name__, 'response'), child_of=span_ctx)
             span = scope.span
-            span.log_kv({tags.FUNCTION_RESPONSE: json.dumps(retval.__dict__)})
+            span.log_kv({tags.FUNCTION_RESPONSE: ",".join(retval.__dict__})
             scope.close()
             return retval
 
