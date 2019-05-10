@@ -28,8 +28,8 @@ class ApiTracer:
         [type] -- [description]
     """
 
-    def __init__(self):
-        self._tracer: Tracer = self.init_tracer('Authentication Services')
+    def __init__(self, service_name: str = 'Authentication Services'):
+        self._tracer: Tracer = self.init_tracer(service_name)
 
     @property
     def tracer(self):
