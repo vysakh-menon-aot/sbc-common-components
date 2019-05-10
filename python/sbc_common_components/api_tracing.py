@@ -99,13 +99,15 @@ class ApiTracing(FlaskTracing):
                     tags.FUNCTION_PARAMETERS: '(' + ', '.join('%s' % p for p in func_args) + ' )',
                 }
             )
+            scope.close()
 
             retval = function(*func_args, **func_kwargs)
 
-            span.log_kv({tags.FUNCTION_RESPONSE: retval})
-
+            span_ctx = tracer.active_span
+            scope = tracer.start_active_span('{0}.{1}'.format(function.__name__, 'response'), child_of=span_ctx)
+            span = scope.span
+            span.log_kv({tags.FUNCTION_RESPONSE: retval.asdict()})
             scope.close()
-
             return retval
 
         return wrapper
