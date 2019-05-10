@@ -34,4 +34,5 @@ class TraceTags:
     CLASS_NAME = 'class.name'
     FUNCTION_NAME = 'function.name'
     FUNCTION_PARAMETERS = 'function.parameters'
+    FUNCTION_RESPONSE = 'function.response'
     COMPONENT = 'component'

@@ -99,9 +99,14 @@ class ApiTracing(FlaskTracing):
                     tags.FUNCTION_PARAMETERS: '(' + ', '.join('%s' % p for p in func_args) + ' )',
                 }
             )
-            # TODO need to make this span as current active span in the tracer
+
+            retval = function(*func_args, **func_kwargs)
+
+            span.log_kv({tags.FUNCTION_RESPONSE: retval})
+
             scope.close()
-            return function(*func_args, **func_kwargs)
+
+            return retval
 
         return wrapper
 
