@@ -14,74 +14,12 @@
 """Function to tracing all methods, functions or exceptions."""
 import functools
 import inspect
-
-from flask import jsonify
-
 import opentracing
+
 from opentracing.propagation import Format
 
 from flask_opentracing import FlaskTracing
-from jaeger_client import Config as JaegerConfig
 from sbc_common_components.trace_tags import TraceTags as tags
-
-
-class ApiTracer:
-    """[summary]
-
-    Arguments:
-        JaegerConfig {[type]} -- [description]
-
-    Returns:
-        [type] -- [description]
-    """
-
-    def __init__(self):
-        self._tracer: opentracing.Tracer = self.init_tracer
-
-    @property
-    def tracer(self):
-        if not self._tracer:
-            return opentracing.tracer
-        return self._tracer
-
-    @tracer.setter
-    def tracer(self, value):
-        self._tracer = value
-
-    @staticmethod
-    def handle_tracing_error(exception):
-        response = jsonify(exception.error)
-        response.status_code = exception.status_code
-        return response
-
-    @staticmethod
-    def init_tracer():
-        """ initialize tracer"""
-        init_config = JaegerConfig(
-            config={  # usually read from some yaml config
-                'sampler': {'type': 'const', 'param': 1},
-                'logging': True,
-                'reporter_batch_size': 1,
-                'trace_id_header': 'registries-trace-id',
-            },
-            service_name='Authentication Services',
-        )
-
-        return init_config.initialize_tracer()
-
-    @staticmethod
-    def new_tracer(service):
-        """ new tracer"""
-        new_config = JaegerConfig(
-            config={  # usually read from some yaml config
-                'sampler': {'type': 'const', 'param': 1},
-                'logging': True,
-                'reporter_batch_size': 1,
-                'trace_id_header': 'registries-trace-id',
-            },
-            service_name=service,
-        )
-        return new_config.new_tracer()
 
 
 class ApiTracing(FlaskTracing):
