@@ -11,68 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Function to tracing all methods, functions or exceptions."""
+"""Function to tracing all services."""
 import functools
 import inspect
 import opentracing
 
-from opentracing.propagation import Format
-
-from flask_opentracing import FlaskTracing
-from sbc_common_components.trace_tags import TraceTags as tags
+from sbc_common_components.tracing.trace_tags import TraceTags as tags
 
 
-class ApiTracing(FlaskTracing):
+class ServiceTracing:
     """
     Tracer that can trace certain exceptions.
 
     @param tracer the OpenTracing tracer implementation to trace exceptions with
     """
-
-    def inject_tracing_header(self, response_header, tracer=None):
-        """
-        Function to inject the tracing header to http response .
-
-        Arguments:
-            response_header {json} -- http response
-
-        Keyword Arguments:
-            tracer {opentracing.tracer} -- tracing tracer
-        """
-        current_tracer = tracer or self.tracer
-        current_span = current_tracer.active_span
-        current_tracer.inject(current_span, Format.HTTP_HEADERS, response_header)
-
-    def exception_trace(self, e, trace_back=None):
-        """[summary]
-
-        Arguments:
-            e {[type]} -- [description]
-
-        Keyword Arguments:
-            trace_back {[type]} -- [description] (default: {None})
-        """
-        tracer = self.tracer
-        exception_name = e.__class__.__name__
-        error_message = e.with_traceback(None)
-
-        try:
-            span_ctx = tracer.active_span
-            scope = tracer.start_active_span(exception_name, child_of=span_ctx)
-        except (opentracing.InvalidCarrierException, opentracing.SpanContextCorruptedException):
-            scope = tracer.start_active_span(exception_name)
-
-        span = scope.span
-        span.set_tag(tags.ERROR, 'true')
-        span.log_kv(
-            {
-                tags.EVENT: 'error',
-                tags.ERROR_OBJECT: exception_name,
-                tags.ERROR_MESSAGE: error_message,
-                tags.ERROR_TRACE_BACK: trace_back,
-            }
-        )
-        scope.close()
 
     @staticmethod
     def _get_class_name_that_defined_method(meth):
@@ -93,7 +45,6 @@ class ApiTracing(FlaskTracing):
 
         @functools.wraps(function)
         def wrapper(*func_args, **func_kwargs):
-            # TODO should use self.tracer
             tracer = opentracing.tracer
 
             try:
@@ -107,7 +58,7 @@ class ApiTracing(FlaskTracing):
 
             span.log_kv(
                 {
-                    tags.CLASS_NAME: ApiTracing._get_class_name_that_defined_method(function),
+                    tags.CLASS_NAME: ServiceTracing._get_class_name_that_defined_method(function),
                     tags.FUNCTION_NAME: function.__name__,
                     tags.FUNCTION_ARGS: ', '.join('%s' % p for p in func_args),
                     tags.FUNCTION_KWARGS: ', '.join(['{}={!r}'.format(k, v) for k, v in func_kwargs.items()]),
@@ -129,12 +80,13 @@ class ApiTracing(FlaskTracing):
 
     @staticmethod
     def without_tracing(function):
-        """Tag a method so that it shouldn't be decorated to call self.load."""
+        """Tag a function/method so that it shouldn't be decorated to call tracing."""
         function.without_tracing = True
         return function
 
     @staticmethod
     def should_be_tracing(function):
+        """Tag a function/method so that it should be decorated to call tracing."""
         try:
             return not bool(function.without_tracing)
         except AttributeError:
