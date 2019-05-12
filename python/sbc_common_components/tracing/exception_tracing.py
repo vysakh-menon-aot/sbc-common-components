@@ -18,7 +18,7 @@ import opentracing
 from sbc_common_components.tracing.trace_tags import TraceTags as tags
 
 
-def exception_trace(self, ex, trace_back=None):
+def exception_trace(ex, trace_back=None):
     """[summary]
 
         Arguments:
