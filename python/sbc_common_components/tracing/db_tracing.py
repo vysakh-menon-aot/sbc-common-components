@@ -34,3 +34,39 @@ class DBTracing:
         span.set_tag(tags.COMPONENT, 'database')
         span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
         scope.close()
+
+    @staticmethod
+    def insert_tracing(mapper, connection, target):
+        """Tracing sql statement before insert."""
+
+        tracer = opentracing.tracer
+
+        scope = tracer.start_active_span('insert')
+        span = scope.span
+        span.set_tag(tags.COMPONENT, 'database')
+        # span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
+        scope.close()
+
+    @staticmethod
+    def update_tracing(mapper, connection, target):
+        """Tracing sql statement before insert."""
+
+        tracer = opentracing.tracer
+
+        scope = tracer.start_active_span('update')
+        span = scope.span
+        span.set_tag(tags.COMPONENT, 'database')
+        # span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
+        scope.close()
+
+    @staticmethod
+    def delete_tracing(mapper, connection, target):
+        """Tracing sql statement before delete."""
+
+        tracer = opentracing.tracer
+
+        scope = tracer.start_active_span('delete')
+        span = scope.span
+        span.set_tag(tags.COMPONENT, 'database')
+        # span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
+        scope.close()
