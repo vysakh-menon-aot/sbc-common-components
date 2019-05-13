@@ -19,9 +19,7 @@ from flask_opentracing import FlaskTracing
 
 class ApiTracing(FlaskTracing):
     """
-    Tracer that can trace certain API endpoint.
-
-    @param tracer the OpenTracing tracer implementation to trace apis with
+    Enable tracing that can trace certain API endpoint.
     """
 
     def inject_tracing_header(self, response_header, tracer=None):
@@ -32,8 +30,21 @@ class ApiTracing(FlaskTracing):
             response_header {json} -- http response
 
         Keyword Arguments:
-            tracer {opentracing.tracer} -- tracing tracer
+            tracer {opentracing.tracer} -- specific a tracer if don't what to use global tracer
         """
         current_tracer = tracer or self.tracer
         current_span = current_tracer.active_span
         current_tracer.inject(current_span, Format.HTTP_HEADERS, response_header)
+
+    def add_span_tag(self, tag_name: str, tag_context: str):
+        """
+        Function to add a span tag to current active span
+
+        Arguments:
+            tag_name {str} -- name of tag
+            tag_context {str} -- content of tag
+        """
+        tracer = self.tracer
+        scope = tracer.scope_manager.active()
+        if scope is not None:
+            scope.span.set_tag(tag_name, tag_context)

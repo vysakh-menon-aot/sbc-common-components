@@ -29,15 +29,8 @@ class DBTracing:
 
         tracer = opentracing.tracer
 
-        try:
-            span_ctx = tracer.active_span
-            scope = tracer.start_active_span('query', child_of=span_ctx)
-        except (opentracing.InvalidCarrierException, opentracing.SpanContextCorruptedException):
-            scope = tracer.start_active_span('query')
-
+        scope = tracer.start_active_span('query')
         span = scope.span
         span.set_tag(tags.COMPONENT, 'database')
-
         span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
         scope.close()
-

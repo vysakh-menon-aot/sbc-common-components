@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Function to creating tracer instance."""
+import logging
 import opentracing
 
 from opentracing import Tracer
@@ -19,13 +20,8 @@ from jaeger_client import Config as JaegerConfig
 
 
 class ApiTracer:
-    """[summary]
-
-    Arguments:
-        JaegerConfig {[type]} -- [description]
-
-    Returns:
-        [type] -- [description]
+    """
+    Tracer that can trace certain API endpoints, services, db and exceptions.
     """
 
     def __init__(self, service_name: str = 'Authentication Services'):
@@ -44,6 +40,10 @@ class ApiTracer:
     @staticmethod
     def init_tracer(service_name: str):
         """ initialize tracer"""
+
+        logging.getLogger('').handlers = []
+        logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+
         init_config = JaegerConfig(
             config={  # usually read from some yaml config
                 'sampler': {'type': 'const', 'param': 1},
@@ -59,6 +59,10 @@ class ApiTracer:
     @staticmethod
     def new_tracer(service_name: str):
         """ new tracer"""
+
+        logging.getLogger('').handlers = []
+        logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+
         new_config = JaegerConfig(
             config={  # usually read from some yaml config
                 'sampler': {'type': 'const', 'param': 1},

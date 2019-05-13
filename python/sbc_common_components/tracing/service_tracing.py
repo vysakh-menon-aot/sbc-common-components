@@ -21,13 +21,13 @@ from sbc_common_components.tracing.trace_tags import TraceTags as tags
 
 class ServiceTracing:
     """
-    Tracer that can trace certain exceptions.
+    Tracer that can trace certain services.
 
-    @param tracer the OpenTracing tracer implementation to trace exceptions with
     """
 
     @staticmethod
     def _get_class_name_that_defined_method(meth):
+        """Get function/method name from class that use as the tracing span name."""
         if inspect.ismethod(meth):
             for cls in inspect.getmro(meth.__self__.__class__):
                 if cls.__dict__.get(meth.__name__) is meth:
@@ -47,15 +47,9 @@ class ServiceTracing:
         def wrapper(*func_args, **func_kwargs):
             tracer = opentracing.tracer
 
-            try:
-                span_ctx = tracer.active_span
-                scope = tracer.start_active_span(function.__name__, child_of=span_ctx)
-            except (opentracing.InvalidCarrierException, opentracing.SpanContextCorruptedException):
-                scope = tracer.start_active_span(function.__name__)
-
+            scope = tracer.start_active_span(function.__name__)
             span = scope.span
             span.set_tag(tags.COMPONENT, 'Service')
-
             span.log_kv(
                 {
                     tags.CLASS_NAME: ServiceTracing._get_class_name_that_defined_method(function),
@@ -69,8 +63,7 @@ class ServiceTracing:
             retval = function(*func_args, **func_kwargs)
 
             if retval is not None:
-                span_ctx = tracer.active_span
-                scope = tracer.start_active_span('{0}.{1}'.format(function.__name__, 'response'), child_of=span_ctx)
+                scope = tracer.start_active_span('{0}.{1}'.format(function.__name__, 'response'))
                 span = scope.span
                 span.log_kv({tags.FUNCTION_RESPONSE: retval.__dict__})
                 scope.close()
@@ -79,7 +72,7 @@ class ServiceTracing:
         return wrapper
 
     @staticmethod
-    def without_tracing(function):
+    def disable_tracing(function):
         """Tag a function/method so that it shouldn't be decorated to call tracing."""
         function.without_tracing = True
         return function
@@ -88,12 +81,12 @@ class ServiceTracing:
     def should_be_tracing(function):
         """Tag a function/method so that it should be decorated to call tracing."""
         try:
-            return not bool(function.without_tracing)
+            return not bool(function.disable_tracing)
         except AttributeError:
             return True
 
     @staticmethod
-    def service_trace(decorator, predicate: bool = True):
+    def trace(decorator, predicate: bool = True):
         """Apply a decorator to all methods that satisfy a predicate, if given."""
 
         def wrapper(cls):

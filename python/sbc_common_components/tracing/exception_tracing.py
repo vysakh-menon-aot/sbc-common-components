@@ -18,33 +18,35 @@ import opentracing
 from sbc_common_components.tracing.trace_tags import TraceTags as tags
 
 
-def exception_trace(ex, trace_back=None):
-    """[summary]
+class ExceptionTracing:
+    """
+    Tracer that can trace certain exceptions.
 
-        Arguments:
-            e {[type]} -- [description]
+    """
 
-        Keyword Arguments:
-            trace_back {[type]} -- [description] (default: {None})
-        """
-    tracer = opentracing.tracer
-    exception_name = ex.__class__.__name__
-    error_message = ex.with_traceback(None)
+    @staticmethod
+    def trace(ex, trace_back=None):
+        """[summary]
 
-    try:
-        span_ctx = tracer.active_span
-        scope = tracer.start_active_span(exception_name, child_of=span_ctx)
-    except (opentracing.InvalidCarrierException, opentracing.SpanContextCorruptedException):
+            Arguments:
+                e {Exception} -- Exception class
+
+            Keyword Arguments:
+                trace_back {str} -- Exception trace back details
+            """
+        tracer = opentracing.tracer
+        exception_name = ex.__class__.__name__
+        error_message = ex.with_traceback(None)
+
         scope = tracer.start_active_span(exception_name)
-
-    span = scope.span
-    span.set_tag(tags.ERROR, 'true')
-    span.log_kv(
-        {
-            tags.EVENT: 'error',
-            tags.ERROR_OBJECT: exception_name,
-            tags.ERROR_MESSAGE: error_message,
-            tags.ERROR_TRACE_BACK: trace_back,
-        }
-    )
-    scope.close()
+        span = scope.span
+        span.set_tag(tags.ERROR, 'true')
+        span.log_kv(
+            {
+                tags.EVENT: 'error',
+                tags.ERROR_OBJECT: exception_name,
+                tags.ERROR_MESSAGE: error_message,
+                tags.ERROR_TRACE_BACK: trace_back,
+            }
+        )
+        scope.close()
