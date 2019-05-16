@@ -25,48 +25,12 @@ class DBTracing:
 
     @staticmethod
     def query_tracing(conn, cursor, statement, parameters, context, executemany):
-        """Tracing sql statement before cursor execute."""
+        """Tracing sql statement before cursor execute. bypass the empty statement and ops check statement"""
+        if not statement and statement != 'select 1':
+            tracer = opentracing.tracer
 
-        tracer = opentracing.tracer
+            with (tracer.start_active_span('query')) as scope:
+                span = scope.span
+                span.set_tag(tags.COMPONENT, 'database')
+                span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
 
-        scope = tracer.start_active_span('query')
-        span = scope.span
-        span.set_tag(tags.COMPONENT, 'database')
-        span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
-        scope.close()
-
-    @staticmethod
-    def insert_tracing(mapper, connection, target):
-        """Tracing sql statement before insert."""
-
-        tracer = opentracing.tracer
-
-        scope = tracer.start_active_span('insert')
-        span = scope.span
-        span.set_tag(tags.COMPONENT, 'database')
-        # span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
-        scope.close()
-
-    @staticmethod
-    def update_tracing(mapper, connection, target):
-        """Tracing sql statement before insert."""
-
-        tracer = opentracing.tracer
-
-        scope = tracer.start_active_span('update')
-        span = scope.span
-        span.set_tag(tags.COMPONENT, 'database')
-        # span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
-        scope.close()
-
-    @staticmethod
-    def delete_tracing(mapper, connection, target):
-        """Tracing sql statement before delete."""
-
-        tracer = opentracing.tracer
-
-        scope = tracer.start_active_span('delete')
-        span = scope.span
-        span.set_tag(tags.COMPONENT, 'database')
-        # span.log_kv({tags.DATABASE_QUERY: '{} {}'.format(statement, parameters)})
-        scope.close()

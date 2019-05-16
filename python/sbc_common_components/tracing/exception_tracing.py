@@ -26,27 +26,27 @@ class ExceptionTracing:
 
     @staticmethod
     def trace(ex, trace_back=None):
-        """[summary]
+        """
+        Function to trace exception details
 
-            Arguments:
-                e {Exception} -- Exception class
+        Arguments:
+            e {Exception} -- Exception class
 
-            Keyword Arguments:
-                trace_back {str} -- Exception trace back details
-            """
+        Keyword Arguments:
+            trace_back {str} -- Exception trace back details
+        """
         tracer = opentracing.tracer
         exception_name = ex.__class__.__name__
         error_message = ex.with_traceback(None)
 
-        scope = tracer.start_active_span(exception_name)
-        span = scope.span
-        span.set_tag(tags.ERROR, 'true')
-        span.log_kv(
-            {
-                tags.EVENT: 'error',
-                tags.ERROR_OBJECT: exception_name,
-                tags.ERROR_MESSAGE: error_message,
-                tags.ERROR_TRACE_BACK: trace_back,
-            }
-        )
-        scope.close()
+        with (tracer.start_active_span(exception_name)) as scope:
+            span = scope.span
+            span.set_tag(tags.ERROR, 'true')
+            span.log_kv(
+                {
+                    tags.EVENT: 'error',
+                    tags.ERROR_OBJECT: exception_name,
+                    tags.ERROR_MESSAGE: error_message,
+                    tags.ERROR_TRACE_BACK: trace_back,
+                }
+            )

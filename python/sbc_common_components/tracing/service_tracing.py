@@ -47,27 +47,26 @@ class ServiceTracing:
         def wrapper(*func_args, **func_kwargs):
             tracer = opentracing.tracer
 
-            scope = tracer.start_active_span(function.__name__)
-            span = scope.span
-            span.set_tag(tags.COMPONENT, 'Service')
-            span.log_kv(
-                {
-                    tags.CLASS_NAME: ServiceTracing._get_class_name_that_defined_method(function),
-                    tags.FUNCTION_NAME: function.__name__,
-                    tags.FUNCTION_ARGS: ', '.join('%s' % p for p in func_args),
-                    tags.FUNCTION_KWARGS: ', '.join(['{}={!r}'.format(k, v) for k, v in func_kwargs.items()]),
-                }
-            )
-            scope.close()
-
-            retval = function(*func_args, **func_kwargs)
-
-            if retval is not None:
-                scope = tracer.start_active_span('{0}.{1}'.format(function.__name__, 'response'))
+            with (tracer.start_active_span(function.__name__)) as scope:
                 span = scope.span
-                span.log_kv({tags.FUNCTION_RESPONSE: retval.__dict__})
-                scope.close()
-            return retval
+                span.set_tag(tags.COMPONENT, 'Service')
+                span.log_kv(
+                    {
+                        tags.CLASS_NAME: ServiceTracing._get_class_name_that_defined_method(function),
+                        tags.FUNCTION_NAME: function.__name__,
+                        tags.FUNCTION_ARGS: ', '.join('%s' % p for p in func_args),
+                        tags.FUNCTION_KWARGS: ', '.join(['{}={!r}'.format(k, v) for k, v in func_kwargs.items()]),
+                    }
+                )
+
+                retval = function(*func_args, **func_kwargs)
+
+                if retval is not None:
+                    with (tracer.start_active_span('{0}.{1}'.format(function.__name__, 'response'))) as ret_scope:
+                        ret_span = ret_scope.span
+                        ret_span.log_kv({tags.FUNCTION_RESPONSE: retval.__dict__})
+
+                return retval
 
         return wrapper
 
