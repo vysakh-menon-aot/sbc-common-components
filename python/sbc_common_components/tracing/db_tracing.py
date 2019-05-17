@@ -24,9 +24,9 @@ class DBTracing:
     """
 
     @staticmethod
-    def query_tracing(conn, cursor, statement, parameters, context, executemany):
+    def query_tracing(conn, cursor, statement: str, parameters, context, executemany):
         """Tracing sql statement before cursor execute. bypass the empty statement and ops check statement"""
-        if not statement and statement != 'select 1':
+        if statement and not statement.isspace() and statement != 'select 1':
             tracer = opentracing.tracer
 
             with (tracer.start_active_span('query')) as scope:
