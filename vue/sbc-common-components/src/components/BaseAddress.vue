@@ -260,7 +260,7 @@ export default class BaseAddress extends Vue {
 
 <style scoped lang="stylus">
 
-  @import "../../src/assets/styles/theme.styl"
+  @import "../../src/assets/styl/theme.styl"
 
   .meta-container
     display flex
