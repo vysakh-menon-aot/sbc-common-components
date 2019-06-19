@@ -19,6 +19,7 @@ module.exports = {
           '/Footer/',
           '/Layout/',
           '/FeeCalculator/',
+          '/BaseAddress/',
         ]
       },
       {
