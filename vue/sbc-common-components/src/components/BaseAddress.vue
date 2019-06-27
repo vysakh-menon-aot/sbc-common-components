@@ -16,26 +16,29 @@
     <!-- Display fields -->
     <v-expand-transition>
       <div class="address-block"
-           v-show="!isEditing"
+           v-show="!editing"
       >
         <div class="address-block__info">
           <div class="address-block__info-row">
-            {{ address.street }}
-          </div>
-          <div class="address-block__info-row"
-               v-if="address.deliveryInstructions"
-          >
-            {{ address.deliveryInstructions }}
+            {{ addressLocal.streetAddress }}
           </div>
           <div class="address-block__info-row">
-            <span>{{ address.city }}</span>
-            <span>&nbsp;{{ address.region }}</span>
-            <span>&nbsp;&nbsp;{{ address.postalCode }}</span>
+            {{ addressLocal.streetAddressAdditional }}
+          </div>
+          <div class="address-block__info-row">
+            <span>{{ addressLocal.addressCity }}</span>
+            <span>&nbsp;{{ addressLocal.addressRegion }}</span>
+            <span>&nbsp;&nbsp;{{ addressLocal.postalCode }}</span>
           </div>
           <div class="address-block__info-row"
-               v-if="address.country !== 'Canada'"
+               v-if="addressLocal.addressCountry !== 'Canada'"
           >
-            {{ address.country }}
+            {{ addressLocal.addressCountry }}
+          </div>
+          <div class="address-block__info-row"
+               v-if="addressLocal.deliveryInstructions"
+          >
+            {{ addressLocal.deliveryInstructions }}
           </div>
         </div>
       </div>
@@ -44,58 +47,67 @@
     <!-- Edit fields -->
     <v-expand-transition>
       <v-form lazy-validation
-              ref="deliveryAddressForm"
-              v-show="isEditing"
+              name="address-form"
+              ref="addressForm"
+              v-show="editing"
       >
         <div class="form__row">
           <v-text-field box
-                        id="street-address"
                         label="Street Address"
-                        v-model="address.street"
+                        name="street-address"
+                        v-model="addressLocal.streetAddress"
                         :rules="streetRules"
+          ></v-text-field>
+        </div>
+        <div class="form__row">
+          <v-text-field box
+                        label="Additional Street Address (Optional)"
+                        name="street-address-additional"
+                        v-model="addressLocal.streetAddressAdditional"
+          ></v-text-field>
+        </div>
+        <div class="form__row three-column">
+          <v-text-field box
+                        class="item"
+                        label="City"
+                        name="address-city"
+                        required
+                        v-model="addressLocal.addressCity"
+                        :rules="cityRules"
+          ></v-text-field>
+          <v-select box
+                    class="item"
+                    label="Province"
+                    name="address-region"
+                    v-model="addressLocal.addressRegion"
+                    :items="regions"
+          ></v-select>
+          <v-text-field box
+                        class="item"
+                        label="Postal Code"
+                        name="postal-code"
+                        required
+                        v-model="addressLocal.postalCode"
+                        :rules="regionRules"
+          ></v-text-field>
+        </div>
+        <div class="form__row">
+          <v-text-field box
+                        label="Country"
+                        name="address-country"
+                        required
+                        v-model="addressLocal.addressCountry"
+                        :rules="countryRules"
           ></v-text-field>
         </div>
         <div class="form__row">
           <v-textarea auto-grow
                       box
                       label="Delivery Instructions (Optional)"
+                      name="delivery-instructions"
                       rows="2"
-                      v-model="address.deliveryInstructions"
+                      v-model="addressLocal.deliveryInstructions"
           />
-        </div>
-        <div class="form__row three-column">
-          <v-text-field box
-                        class="item"
-                        id="city"
-                        label="City"
-                        required
-                        v-model="address.city"
-                        :rules="cityRules"
-          ></v-text-field>
-          <v-select box
-                    class="item"
-                    id="region"
-                    label="Province"
-                    v-model="address.region"
-                    :items="regions"
-          ></v-select>
-          <v-text-field box
-                        class="item"
-                        id="postal-code"
-                        label="Postal Code"
-                        required
-                        v-model="address.postalCode"
-                        :rules="regionRules"
-          ></v-text-field>
-        </div>
-        <div class="form__row">
-          <v-text-field box
-                        id="country"
-                        label="Country"
-                        required
-                        v-model="address.country"
-                        :rules="countryRules"
-          ></v-text-field>
         </div>
       </v-form>
     </v-expand-transition>
@@ -116,19 +128,19 @@ import { required } from 'vuelidate/lib/validators'
   mixins: [validationMixin],
   validations: {
     address: {
-      street: {
+      streetAddress: {
         required
       },
-      city: {
+      addressCity: {
         required
       },
-      region: {
+      addressRegion: {
         required
       },
       postalCode: {
         required
       },
-      country: {
+      addressCountry: {
         required
       }
     }
@@ -136,26 +148,25 @@ import { required } from 'vuelidate/lib/validators'
 })
 export default class BaseAddress extends Vue {
   /**
-   * Contains the address (if any) to be edited, as a JSON string.
+   * Contains the address (if any) to be edited.
    */
-  @Prop({ default: '{}' }) readonly addressJson!: string
+  @Prop({ default: () => {} }) readonly address: object
 
   /**
    * Indicates whether the address should be shown in editing mode (true) display mode (false).
    */
-  @Prop({ default: false }) readonly isEditing!: boolean
+  @Prop({ default: false }) readonly editing: boolean
 
   /**
-   * The address object that contains the fields edited by the component. This is the object equivalent of the
-   * {@link addressJson} property.
+   * A local copy of the address object, to contain the fields edited by the component.
    */
-  private address: object = null
+  private addressLocal: object = { ...this.address }
 
   /**
    * A copy of the address that the component was originally created with. This is used to determine whether or not the
    * address has been edited by the user.
    */
-  private addressOriginal: object
+  private addressOriginal: object = { ...this.address }
 
   /**
    * Has this component been mounted yet? Initially unset, but will be set by the {@link mounted} lifecycle callback.
@@ -180,11 +191,8 @@ export default class BaseAddress extends Vue {
    * Lifecycle callback to convert the address JSON into an object, so that it can be used by the template.
    */
   private created () : void {
-    this.address = BaseAddress.jsonStringToObject(this.addressJson)
-    this.addressOriginal = BaseAddress.jsonStringToObject(this.addressJson)
-
     // Let the parent know right away about the validity of the address.
-    this.emitValidity()
+    this.emitValid()
   }
 
   /**
@@ -196,20 +204,13 @@ export default class BaseAddress extends Vue {
   }
 
   /**
-   * Convenience method for loading the address object from the addressJson property string.
-   */
-  private static jsonStringToObject (json : string) : object {
-    return JSON.parse(json || '{}')
-  }
-
-  /**
-   * Emits an update message for the {@link addressJson} property, so that the caller can ".sync" with it.
+   * Emits an update message for the {@link address} property, so that the caller can ".sync" with it.
    *
-   * @returns a string representation of the address.
+   * @returns the {@link addressLocal} object.
    */
-  @Emit('update:addressJson')
-  private emitAddressJson () : string {
-    return JSON.stringify(this.address)
+  @Emit('update:address')
+  private emitAddress () : object {
+    return this.addressLocal
   }
 
   /**
@@ -218,7 +219,7 @@ export default class BaseAddress extends Vue {
    * @returns a boolean that is true if the address if valid, false otherwise.
    */
   @Emit('valid')
-  private emitValidity () : boolean {
+  private emitValid () : boolean {
     return !this.$v.$invalid
   }
 
@@ -229,28 +230,27 @@ export default class BaseAddress extends Vue {
    */
   @Emit('modified')
   private emitModified () : boolean {
-    return JSON.stringify(this.addressOriginal) !== JSON.stringify(this.address)
+    return JSON.stringify(this.addressOriginal) !== JSON.stringify(this.addressLocal)
   }
 
   /**
-   * Watches changes to the addressJson object, so that if the parent changes the data then the object copy of it that
+   * Watches changes to the address object, so that if the parent changes the data then the object copy of it that
    * backs the display will be updated.
    */
-  @Watch('addressJson')
-  private onAddressJsonChanged () : void {
-    this.address = BaseAddress.jsonStringToObject(this.addressJson)
+  @Watch('address', { deep: true })
+  private onAddressChanged () : void {
+    this.addressLocal = { ...this.address }
   }
 
   /**
-   * Watches changes to the address object, to catch any changes to the fields within the address. Will notify the
+   * Watches changes to the addressLocal object, to catch any changes to the fields within the address. Will notify the
    * parent object with the new address and whether or not the address is valid.
    */
-  @Watch('address', { deep: true, immediate: true })
-  private onAddressChanged () : void {
-    // Don't do these until the component is mounted. Otherwise, it will be sending events during initialization.
+  @Watch('addressLocal', { deep: true, immediate: true })
+  private onAddressLocalChanged () : void {
     if (this.isMounted) {
-      this.emitAddressJson()
-      this.emitValidity()
+      this.emitAddress()
+      this.emitValid()
       this.emitModified()
     }
   }

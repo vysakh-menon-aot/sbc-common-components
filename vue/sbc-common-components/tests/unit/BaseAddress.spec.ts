@@ -14,7 +14,7 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify'
 
-import { mount } from '@vue/test-utils'
+import { mount, Wrapper } from '@vue/test-utils'
 
 import BaseAddress from '@/components/BaseAddress.vue'
 
@@ -25,189 +25,306 @@ const app = document.createElement('div')
 app.setAttribute('data-app', 'true')
 document.body.append(app)
 
-// The basic Canadian address used for testing the component.
+// The basic and valid Canadian address used for testing the component.
 const basicAddress = {
-  street: '1234 Main St',
-  deliveryInstructions: 'c/o The Management',
-  city: 'Victoria',
-  region: 'BC',
+  streetAddress: '1234 Main St',
+  streetAddressAdditional: 'PO BOX STN PROV GOV',
+  addressCity: 'Victoria',
+  addressRegion: 'BC',
   postalCode: 'V8W 3J3',
-  country: 'Canada'
+  addressCountry: 'Canada',
+  deliveryInstructions: 'c/o The Management'
 }
 
-test('No address', () => {
+// A different street to test address changes.
+const differentStreet = '13 Pig Sty Alley'
+
+// Input field selector to test changes to the DOM element.
+const streetInputSelector = '[name="street-address"]'
+
+// Convenience function for digging into the wrapper events and getting the last event for a given name.
+function getLastEvent (wrapper: Wrapper<BaseAddress>, name: string): any {
+  let eventsList = wrapper.emitted()[name]
+  let events = eventsList[eventsList.length - 1]
+
+  return events[events.length - 1]
+}
+
+test('No address', async () => {
   const addressWrapper = mount(BaseAddress, {
-    propsData: { isEditing: false }
+    propsData: { editing: false }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Undefined address', () => {
+test('Undefined address', async () => {
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: undefined, isEditing: false }
+    propsData: { address: undefined, editing: false }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Null address', () => {
+test('Null address', async () => {
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: null, isEditing: false }
+    propsData: { address: null, editing: false }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Empty address', () => {
+test('Empty address', async () => {
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: '{}', isEditing: false }
+    propsData: { address: {}, editing: false }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Canadian address', () => {
+test('Address object isolation', async () => {
+  let address: object = {}
+
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(basicAddress), isEditing: false }
+    propsData: { address: address, editing: false }
   })
 
-  // The "valid" event should indicate the the address is valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([true])
+  let inputElement = addressWrapper.find(streetInputSelector)
+  inputElement.element['value'] = basicAddress.streetAddress
+  inputElement.trigger('input')
 
-  // Canada Post standard is that addresses within Canada do not include the country.
-  expect(addressWrapper.html()).not.toContain((basicAddress.country))
+  await Vue.nextTick()
+
+  // The component should not be changing the property object.
+  expect(address['streetAddress']).not.toEqual(basicAddress.streetAddress)
 })
 
-test('Missing street', () => {
+test('Canadian address - display', async () => {
+  const addressWrapper = mount(BaseAddress, {
+    propsData: { address: basicAddress, editing: false }
+  })
+
+  await Vue.nextTick()
+
+  // We should be in display mode.
+  expect(addressWrapper.find('.address-block').isVisible()).toBeTruthy()
+  expect(addressWrapper.find('form[name="address-form"').isVisible()).not.toBeTruthy()
+
+  // The last "valid" event should indicate the the address is valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).toBeTruthy()
+
+  // Check that each of the fields appears in the display. Note that the Canada Post guideline says that addresses
+  // within Canada do not include the country.
+  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.streetAddress)
+  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.streetAddressAdditional)
+  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.addressCity)
+  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.addressRegion)
+  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.postalCode)
+  expect(addressWrapper.find('.address-block').html()).not.toContain(basicAddress.addressCountry)
+  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.deliveryInstructions)
+})
+
+test('Canadian address - edit', async () => {
+  const addressWrapper = mount(BaseAddress, {
+    propsData: { address: basicAddress, editing: true }
+  })
+
+  await Vue.nextTick()
+
+  // We should be in edit mode.
+  expect(addressWrapper.find('.address-block').isVisible()).not.toBeTruthy()
+  expect(addressWrapper.find('[name="address-form"').isVisible()).toBeTruthy()
+
+  // The last "valid" event should indicate the the address is valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).toBeTruthy()
+
+  // Check that each of the inputs contains the value.
+  expect(addressWrapper.find('[name="street-address"]').element['value']).toEqual(basicAddress.streetAddress)
+  expect(addressWrapper.find('[name="street-address-additional"]').element['value']).toEqual(
+    basicAddress.streetAddressAdditional)
+  expect(addressWrapper.find('[name="address-city"]').element['value']).toEqual(basicAddress.addressCity)
+  // TODO: Region
+  expect(addressWrapper.find('[name="postal-code"]').element['value']).toEqual(basicAddress.postalCode)
+  expect(addressWrapper.find('[name="address-country"]').element['value']).toEqual(basicAddress.addressCountry)
+  expect(addressWrapper.find('[name="delivery-instructions"]').element['value']).toEqual(
+    basicAddress.deliveryInstructions)
+})
+
+test('Missing street', async () => {
   let modifiedAddress = { ...basicAddress }
-  modifiedAddress.street = ''
+  modifiedAddress.streetAddress = ''
 
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(modifiedAddress), isEditing: true }
+    propsData: { address: modifiedAddress, editing: true }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Missing delivery instructions', () => {
+test('Missing additional street', async () => {
+  let modifiedAddress = { ...basicAddress }
+  modifiedAddress.streetAddressAdditional = ''
+
+  const addressWrapper = mount(BaseAddress, {
+    propsData: { address: modifiedAddress, editing: true }
+  })
+
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).toBeTruthy()
+})
+
+test('Missing delivery instructions', async () => {
   let modifiedAddress = { ...basicAddress }
   modifiedAddress.deliveryInstructions = ''
 
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(modifiedAddress), isEditing: true }
+    propsData: { address: modifiedAddress, editing: true }
   })
 
-  // The "valid" event should indicate the the address is valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([true])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).toBeTruthy()
 })
 
-test('Missing city', () => {
+test('Missing city', async () => {
   let modifiedAddress = { ...basicAddress }
-  modifiedAddress.city = ''
+  modifiedAddress.addressCity = ''
 
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(modifiedAddress), isEditing: true }
+    propsData: { address: modifiedAddress, editing: true }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Missing region', () => {
+test('Missing region', async () => {
   let modifiedAddress = { ...basicAddress }
-  modifiedAddress.region = ''
+  modifiedAddress.addressRegion = ''
 
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(modifiedAddress), isEditing: true }
+    propsData: { address: modifiedAddress, editing: true }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Missing postal code', () => {
+test('Missing postal code', async () => {
   let modifiedAddress = { ...basicAddress }
   modifiedAddress.postalCode = ''
 
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(modifiedAddress), isEditing: true }
+    propsData: { address: modifiedAddress, editing: true }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Missing country', () => {
+test('Missing country', async () => {
   let modifiedAddress = { ...basicAddress }
-  modifiedAddress.country = ''
+  modifiedAddress.addressCountry = ''
 
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(modifiedAddress), isEditing: true }
+    propsData: { address: modifiedAddress, editing: true }
   })
 
-  // The "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid.length).toBe(1)
-  expect(addressWrapper.emitted().valid[0]).toEqual([false])
+  await Vue.nextTick()
+
+  // The last "valid" event should indicate the the address is not valid.
+  expect(addressWrapper.emitted().valid).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
 })
 
-test('Street modified', () => {
+test('Street modified', async () => {
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(basicAddress), isEditing: true }
+    propsData: { address: basicAddress, editing: true }
   })
 
-  // Coupled to internals of component, but unsure how else to do this.
-  addressWrapper.vm.$data['address']['street'] = '13 Pig Sty Alley'
+  let inputElement = addressWrapper.find(streetInputSelector)
+  inputElement.element['value'] = differentStreet
+  inputElement.trigger('input')
 
-  // The "modified" event should indicate the the address has been modified.
-  expect(addressWrapper.emitted().modified.length).toBe(1)
-  expect(addressWrapper.emitted().modified[0]).toEqual([true])
+  await Vue.nextTick()
+
+  // The last "modified" event should indicate that the address has been modified.
+  expect(addressWrapper.emitted().modified).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'modified')).toBeTruthy()
 })
 
-test('Street modified/unmodified', () => {
+test('Street modified/unmodified', async () => {
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(basicAddress), isEditing: true }
+    propsData: { address: basicAddress, editing: true }
   })
 
-  // Coupled to internals of component, but unsure how else to do this.
-  addressWrapper.vm.$data['address']['street'] = '13 Pig Sty Alley'
-  addressWrapper.vm.$data['address']['street'] = basicAddress.street
+  let inputElement = addressWrapper.find(streetInputSelector)
+  inputElement.element['value'] = differentStreet
+  inputElement.trigger('input')
 
-  // The "modified" event should indicate the the address has not been modified, then unmodified when changed back.
-  expect(addressWrapper.emitted().modified.length).toBe(2)
-  expect(addressWrapper.emitted().modified[0]).toEqual([true])
-  expect(addressWrapper.emitted().modified[1]).toEqual([false])
+  await Vue.nextTick()
+
+  inputElement.element['value'] = basicAddress.streetAddress
+  inputElement.trigger('input')
+
+  await Vue.nextTick()
+
+  // The last "modified" event should indicate that the address has not been modified.
+  expect(addressWrapper.emitted().modified).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'modified')).not.toBeTruthy()
 })
 
-test('Sync event', () => {
+test('Sync event', async () => {
   const addressWrapper = mount(BaseAddress, {
-    propsData: { addressJson: JSON.stringify(basicAddress), isEditing: true }
+    propsData: { address: basicAddress, editing: true }
   })
-
-  const newStreet = '13 Pig Sty Alley'
-
-  // Coupled to internals of component, but unsure how else to do this.
-  addressWrapper.vm.$data['address']['street'] = newStreet
 
   let modifiedAddress = { ...basicAddress }
-  modifiedAddress.street = newStreet
+  modifiedAddress.streetAddress = differentStreet
 
-  // The "update:addressJson" event should contain the new address, for syncing the change back to the parent.
-  expect(addressWrapper.emitted()['update:addressJson'].length).toBe(1)
-  expect(addressWrapper.emitted()['update:addressJson'][0]).toEqual([JSON.stringify(modifiedAddress)])
+  let inputElement = addressWrapper.find(streetInputSelector)
+  inputElement.element['value'] = differentStreet
+  inputElement.trigger('input')
+
+  await Vue.nextTick()
+
+  // The "update:address" event should contain the new address, for syncing the change back to the parent.
+  expect(addressWrapper.emitted()['update:address']).toBeDefined()
+  expect(getLastEvent(addressWrapper, 'update:address')).toMatchObject(modifiedAddress)
 })
