@@ -15,8 +15,8 @@ emitted when the component is first created, and every time the address is chang
 - `modified`: a `boolean` that is true if the address has been modified from its original value, or false otherwise.
 In the case where the address is changed from its original value and then changed back to its original value, the final
 event will be false.
-- `update:address`: a `string` that is a JavaScript object containing the address. This will be emitted every time the
-address is changed. The parent can use the `.sync` modifier to update its copy of the `address` property.
+- `update:address`: a JavaScript `object` containing the address. This will be emitted every time the address is
+changed. The parent can use the `.sync` modifier to update its version of the `address` property.
 
 
 ### Prerequisites
