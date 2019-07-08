@@ -48,7 +48,6 @@ describe('SbcFeeSummary.vue', () => {
       propsData: { filingData }
     })
 
-
     expect(wrapper.props().filingData).toBe(filingData)
     expect(wrapper.props('filingData')).toBe(filingData)
   })

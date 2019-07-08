@@ -70,7 +70,7 @@ export default {
       this.fetchError = ''
       this.fees = data
     }).catch((error: any) => {
-      this.fetchError = 'Error fetching fees'
+      this.fetchError = 'Error fetching fees' + error
     })
   },
   computed: {
@@ -89,7 +89,7 @@ export default {
         this.fetchError = ''
         this.fees = data
       }).catch((error: any) => {
-        this.fetchError = 'Error fetching fees'
+        this.fetchError = 'Error fetching fees' + error
       })
     }
   }

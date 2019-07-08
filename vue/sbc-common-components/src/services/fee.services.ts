@@ -46,7 +46,6 @@ export default {
             break
           default:
             console.log('%c FeeMdoule-ERROR:Probably unknown Error %s', 'color: red ;font-size : 13px', JSON.stringify(this.filingData))
-
         }
       })
   }
