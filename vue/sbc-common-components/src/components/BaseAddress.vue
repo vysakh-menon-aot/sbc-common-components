@@ -190,7 +190,7 @@ export default class BaseAddress extends Vue {
   /**
    * Lifecycle callback to convert the address JSON into an object, so that it can be used by the template.
    */
-  private created () : void {
+  private created (): void {
     // Let the parent know right away about the validity of the address.
     this.emitValid()
   }
@@ -199,7 +199,7 @@ export default class BaseAddress extends Vue {
    * Lifecycle callback to store the mounted state of the component. We don't want the address watcher firing events
    * while the component is being set up.
    */
-  private mounted () : void {
+  private mounted (): void {
     this.isMounted = true
   }
 
@@ -209,7 +209,7 @@ export default class BaseAddress extends Vue {
    * @returns the {@link addressLocal} object.
    */
   @Emit('update:address')
-  private emitAddress () : object {
+  private emitAddress (): object {
     return this.addressLocal
   }
 
@@ -219,7 +219,7 @@ export default class BaseAddress extends Vue {
    * @returns a boolean that is true if the address if valid, false otherwise.
    */
   @Emit('valid')
-  private emitValid () : boolean {
+  private emitValid (): boolean {
     return !this.$v.$invalid
   }
 
@@ -229,8 +229,8 @@ export default class BaseAddress extends Vue {
    * @returns a boolean that is true if the address has been modified, false otherwise.
    */
   @Emit('modified')
-  private emitModified () : boolean {
-    return JSON.stringify(this.addressOriginal) !== JSON.stringify(this.addressLocal)
+  private emitModified (): boolean {
+    return BaseAddress.stringify(this.addressOriginal) !== BaseAddress.stringify(this.addressLocal)
   }
 
   /**
@@ -238,7 +238,7 @@ export default class BaseAddress extends Vue {
    * backs the display will be updated.
    */
   @Watch('address', { deep: true })
-  private onAddressChanged () : void {
+  private onAddressChanged (): void {
     this.addressLocal = { ...this.address }
   }
 
@@ -247,12 +247,23 @@ export default class BaseAddress extends Vue {
    * parent object with the new address and whether or not the address is valid.
    */
   @Watch('addressLocal', { deep: true, immediate: true })
-  private onAddressLocalChanged () : void {
+  private onAddressLocalChanged (): void {
     if (this.isMounted) {
       this.emitAddress()
       this.emitValid()
       this.emitModified()
     }
+  }
+
+  /**
+   * A convenience method for JSON.stringify that strips values that have empty strings.
+   *
+   * @param object the object to stringify.
+   *
+   * @returns a string that is the JSON representation of the object.
+   */
+  private static stringify (object: object): string {
+    return JSON.stringify(object, (name: string, val: any) : any => { return val !== '' ? val : undefined })
   }
 }
 

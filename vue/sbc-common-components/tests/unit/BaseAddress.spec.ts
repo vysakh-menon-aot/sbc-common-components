@@ -21,12 +21,12 @@ import BaseAddress from '@/components/BaseAddress.vue'
 Vue.use(Vuetify)
 
 // Boilerplate to prevent the complaint "[Vuetify] Unable to locate target [data-app]"
-const app = document.createElement('div')
+const app: HTMLDivElement = document.createElement('div')
 app.setAttribute('data-app', 'true')
 document.body.append(app)
 
 // The basic and valid Canadian address used for testing the component.
-const basicAddress = {
+const basicAddress: object = {
   streetAddress: '1234 Main St',
   streetAddressAdditional: 'PO BOX STN PROV GOV',
   addressCity: 'Victoria',
@@ -37,294 +37,242 @@ const basicAddress = {
 }
 
 // A different street to test address changes.
-const differentStreet = '13 Pig Sty Alley'
+const differentStreet: string = '13 Pig Sty Alley'
 
-// Input field selector to test changes to the DOM element.
-const streetInputSelector = '[name="street-address"]'
+// Input field selectors to test changes to the DOM elements.
+const streetAddressSelector: string = '[name="street-address"]'
+const deliveryInstructionsSelector: string = '[name="delivery-instructions"]'
 
 // Convenience function for digging into the wrapper events and getting the last event for a given name.
 function getLastEvent (wrapper: Wrapper<BaseAddress>, name: string): any {
-  let eventsList = wrapper.emitted()[name]
-  let events = eventsList[eventsList.length - 1]
+  const eventsList: Array<any> = wrapper.emitted(name)
+  const events: Array<any> = eventsList[eventsList.length - 1]
 
-  return events[events.length - 1]
+  return events[0]
 }
 
-test('No address', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { editing: false }
+// Factory for creating the component - with the most common values for the properties.
+function createComponent (address: object = { ...basicAddress }, editing: boolean = true): Wrapper<BaseAddress> {
+  return mount(BaseAddress, { propsData: { 'address': address, 'editing': editing } })
+}
+
+describe('BaseAddress.vue', () => {
+  it('handles no address', () => {
+    // Don't use createComponent do it manually do the property can be missing.
+    const wrapper: Wrapper<BaseAddress> = mount(BaseAddress)
+
+    // The last "valid" event should indicate the the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('handles an undefined address', () => {
+    // Don't use createComponent do it manually do the property can be undefined.
+    const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      propsData: { address: undefined }
+    })
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
-
-test('Undefined address', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: undefined, editing: false }
+    // The last "valid" event should indicate the the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('handles a null address', () => {
+    const wrapper: Wrapper<BaseAddress> = createComponent(null)
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
-
-test('Null address', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: null, editing: false }
+    // The last "valid" event should indicate the the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('handles an empty address', () => {
+    const wrapper: Wrapper<BaseAddress> = createComponent({})
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
-
-test('Empty address', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: {}, editing: false }
+    // The last "valid" event should indicate the the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('supports address object isolation', () => {
+    const address: object = {}
+    const wrapper: Wrapper<BaseAddress> = createComponent(address)
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
+    const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
+    inputElement.element['value'] = basicAddress['streetAddress']
+    inputElement.trigger('input')
 
-test('Address object isolation', async () => {
-  let address: object = {}
-
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: address, editing: false }
+    // The component should not be changing the property object.
+    expect(address['streetAddress']).not.toEqual(basicAddress['streetAddress'])
   })
 
-  let inputElement = addressWrapper.find(streetInputSelector)
-  inputElement.element['value'] = basicAddress.streetAddress
-  inputElement.trigger('input')
+  it('displays a Canadian address', () => {
+    const wrapper: Wrapper<BaseAddress> = createComponent(basicAddress, false)
 
-  await Vue.nextTick()
+    // We should be in display mode.
+    expect(wrapper.find('.address-block').isVisible()).toBeTruthy()
+    expect(wrapper.find('form[name="address-form"').isVisible()).not.toBeTruthy()
 
-  // The component should not be changing the property object.
-  expect(address['streetAddress']).not.toEqual(basicAddress.streetAddress)
-})
+    // The last "valid" event should indicate that the address is valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).toBeTruthy()
 
-test('Canadian address - display', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: basicAddress, editing: false }
+    // Check that each of the fields appears in the display. Note that the Canada Post guideline says that addresses
+    // within Canada do not include the country.
+    expect(wrapper.find('.address-block').text()).toContain(basicAddress['streetAddress'])
+    expect(wrapper.find('.address-block').text()).toContain(basicAddress['streetAddressAdditional'])
+    expect(wrapper.find('.address-block').text()).toContain(basicAddress['addressCity'])
+    expect(wrapper.find('.address-block').text()).toContain(basicAddress['addressRegion'])
+    expect(wrapper.find('.address-block').text()).toContain(basicAddress['postalCode'])
+    expect(wrapper.find('.address-block').text()).not.toContain(basicAddress['addressCountry'])
+    expect(wrapper.find('.address-block').text()).toContain(basicAddress['deliveryInstructions'])
   })
 
-  await Vue.nextTick()
+  it('edits a Canadian address', () => {
+    const wrapper: Wrapper<BaseAddress> = createComponent()
 
-  // We should be in display mode.
-  expect(addressWrapper.find('.address-block').isVisible()).toBeTruthy()
-  expect(addressWrapper.find('form[name="address-form"').isVisible()).not.toBeTruthy()
+    // We should be in edit mode.
+    expect(wrapper.find('.address-block').isVisible()).not.toBeTruthy()
+    expect(wrapper.find('[name="address-form"').isVisible()).toBeTruthy()
 
-  // The last "valid" event should indicate the the address is valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).toBeTruthy()
+    // The last "valid" event should indicate that the address is valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).toBeTruthy()
 
-  // Check that each of the fields appears in the display. Note that the Canada Post guideline says that addresses
-  // within Canada do not include the country.
-  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.streetAddress)
-  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.streetAddressAdditional)
-  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.addressCity)
-  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.addressRegion)
-  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.postalCode)
-  expect(addressWrapper.find('.address-block').html()).not.toContain(basicAddress.addressCountry)
-  expect(addressWrapper.find('.address-block').html()).toContain(basicAddress.deliveryInstructions)
-})
-
-test('Canadian address - edit', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: basicAddress, editing: true }
+    // Check that each of the inputs contains the value.
+    expect(wrapper.find('[name="street-address"]').element['value']).toEqual(
+      basicAddress['streetAddress'])
+    expect(wrapper.find('[name="street-address-additional"]').element['value']).toEqual(
+      basicAddress['streetAddressAdditional'])
+    expect(wrapper.find('[name="address-city"]').element['value']).toEqual(basicAddress['addressCity'])
+    // TODO: Region
+    expect(wrapper.find('[name="postal-code"]').element['value']).toEqual(basicAddress['postalCode'])
+    expect(wrapper.find('[name="address-country"]').element['value']).toEqual(
+      basicAddress['addressCountry'])
+    expect(wrapper.find('[name="delivery-instructions"]').element['value']).toEqual(
+      basicAddress['deliveryInstructions'])
   })
 
-  await Vue.nextTick()
+  it('is invalid with missing street', () => {
+    const modifiedAddress: object = { ...basicAddress, streetAddress: '' }
+    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
 
-  // We should be in edit mode.
-  expect(addressWrapper.find('.address-block').isVisible()).not.toBeTruthy()
-  expect(addressWrapper.find('[name="address-form"').isVisible()).toBeTruthy()
-
-  // The last "valid" event should indicate the the address is valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).toBeTruthy()
-
-  // Check that each of the inputs contains the value.
-  expect(addressWrapper.find('[name="street-address"]').element['value']).toEqual(basicAddress.streetAddress)
-  expect(addressWrapper.find('[name="street-address-additional"]').element['value']).toEqual(
-    basicAddress.streetAddressAdditional)
-  expect(addressWrapper.find('[name="address-city"]').element['value']).toEqual(basicAddress.addressCity)
-  // TODO: Region
-  expect(addressWrapper.find('[name="postal-code"]').element['value']).toEqual(basicAddress.postalCode)
-  expect(addressWrapper.find('[name="address-country"]').element['value']).toEqual(basicAddress.addressCountry)
-  expect(addressWrapper.find('[name="delivery-instructions"]').element['value']).toEqual(
-    basicAddress.deliveryInstructions)
-})
-
-test('Missing street', async () => {
-  let modifiedAddress = { ...basicAddress }
-  modifiedAddress.streetAddress = ''
-
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: modifiedAddress, editing: true }
+    // The last "valid" event should indicate that the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('is valid with missing additional street', () => {
+    const modifiedAddress: object = { ...basicAddress, streetAddressAdditional: '' }
+    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
-
-test('Missing additional street', async () => {
-  let modifiedAddress = { ...basicAddress }
-  modifiedAddress.streetAddressAdditional = ''
-
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: modifiedAddress, editing: true }
+    // The last "valid" event should indicate that the address is valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('is invalid with missing city', () => {
+    const modifiedAddress: object = { ...basicAddress, addressCity: '' }
+    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
 
-  // The last "valid" event should indicate the the address is valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).toBeTruthy()
-})
-
-test('Missing delivery instructions', async () => {
-  let modifiedAddress = { ...basicAddress }
-  modifiedAddress.deliveryInstructions = ''
-
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: modifiedAddress, editing: true }
+    // The last "valid" event should indicate that the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('is invalid with missing region', () => {
+    const modifiedAddress: object = { ...basicAddress, addressRegion: '' }
+    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
 
-  // The last "valid" event should indicate the the address is valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).toBeTruthy()
-})
-
-test('Missing city', async () => {
-  let modifiedAddress = { ...basicAddress }
-  modifiedAddress.addressCity = ''
-
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: modifiedAddress, editing: true }
+    // The last "valid" event should indicate that the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('is invalid with missing postal code', () => {
+    const modifiedAddress: object = { ...basicAddress, postalCode: '' }
+    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
-
-test('Missing region', async () => {
-  let modifiedAddress = { ...basicAddress }
-  modifiedAddress.addressRegion = ''
-
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: modifiedAddress, editing: true }
+    // The last "valid" event should indicate that the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('is invalid with missing country', () => {
+    const modifiedAddress: object = { ...basicAddress, addressCountry: '' }
+    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
-
-test('Missing postal code', async () => {
-  let modifiedAddress = { ...basicAddress }
-  modifiedAddress.postalCode = ''
-
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: modifiedAddress, editing: true }
+    // The last "valid" event should indicate that the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
-  await Vue.nextTick()
+  test('is valid with missing delivery instructions', () => {
+    const modifiedAddress: object = { ...basicAddress, deliveryInstructions: '' }
+    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
-
-test('Missing country', async () => {
-  let modifiedAddress = { ...basicAddress }
-  modifiedAddress.addressCountry = ''
-
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: modifiedAddress, editing: true }
+    // The last "valid" event should indicate that the address is valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).toBeTruthy()
   })
 
-  await Vue.nextTick()
+  it('is modified when the street changes', () => {
+    const wrapper: Wrapper<BaseAddress> = createComponent()
 
-  // The last "valid" event should indicate the the address is not valid.
-  expect(addressWrapper.emitted().valid).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'valid')).not.toBeTruthy()
-})
+    const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
+    inputElement.setValue(differentStreet)
 
-test('Street modified', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: basicAddress, editing: true }
+    // The last "modified" event should indicate that the address has been modified.
+    expect(wrapper.emitted().modified).toBeDefined()
+    expect(getLastEvent(wrapper, 'modified')).toBeTruthy()
   })
 
-  let inputElement = addressWrapper.find(streetInputSelector)
-  inputElement.element['value'] = differentStreet
-  inputElement.trigger('input')
+  it('is unmodified when street modified then unmodified', () => {
+    const wrapper: Wrapper<BaseAddress> = createComponent()
 
-  await Vue.nextTick()
+    const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
+    inputElement.setValue(differentStreet)
+    inputElement.setValue(basicAddress['streetAddress'])
 
-  // The last "modified" event should indicate that the address has been modified.
-  expect(addressWrapper.emitted().modified).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'modified')).toBeTruthy()
-})
-
-test('Street modified/unmodified', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: basicAddress, editing: true }
+    // The last "modified" event should indicate that the address has not been modified.
+    expect(wrapper.emitted().modified).toBeDefined()
+    expect(getLastEvent(wrapper, 'modified')).not.toBeTruthy()
   })
 
-  let inputElement = addressWrapper.find(streetInputSelector)
-  inputElement.element['value'] = differentStreet
-  inputElement.trigger('input')
+  it('is unmodified when undefined field defined as empty', () => {
+    const modifiedAddress: object = { ...basicAddress, deliveryInstructions: undefined }
+    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
 
-  await Vue.nextTick()
+    const inputElement: Wrapper<Vue> = wrapper.find(deliveryInstructionsSelector)
+    inputElement.setValue('')
 
-  inputElement.element['value'] = basicAddress.streetAddress
-  inputElement.trigger('input')
-
-  await Vue.nextTick()
-
-  // The last "modified" event should indicate that the address has not been modified.
-  expect(addressWrapper.emitted().modified).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'modified')).not.toBeTruthy()
-})
-
-test('Sync event', async () => {
-  const addressWrapper = mount(BaseAddress, {
-    propsData: { address: basicAddress, editing: true }
+    // The last "modified" event should indicate that the address has not been modified.
+    expect(wrapper.emitted().modified).toBeDefined()
+    expect(getLastEvent(wrapper, 'modified')).not.toBeTruthy()
   })
 
-  let modifiedAddress = { ...basicAddress }
-  modifiedAddress.streetAddress = differentStreet
+  it('sends an input when the form changes', () => {
+    const wrapper: Wrapper<BaseAddress> = createComponent()
 
-  let inputElement = addressWrapper.find(streetInputSelector)
-  inputElement.element['value'] = differentStreet
-  inputElement.trigger('input')
+    const modifiedAddress: object = { ...basicAddress, streetAddress: differentStreet }
 
-  await Vue.nextTick()
+    const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
+    inputElement.element['value'] = differentStreet
+    inputElement.trigger('input')
 
-  // The "update:address" event should contain the new address, for syncing the change back to the parent.
-  expect(addressWrapper.emitted()['update:address']).toBeDefined()
-  expect(getLastEvent(addressWrapper, 'update:address')).toMatchObject(modifiedAddress)
+    // The "input" event should contain the new address, for syncing the model back in the parent.
+    expect(wrapper.emitted()['update:address']).toBeDefined()
+    expect(getLastEvent(wrapper, 'update:address')).toMatchObject(modifiedAddress)
+  })
+
+  it('changes the form when the model changes', () => {
+    const addressToChange: object = { ...basicAddress }
+    const wrapper: Wrapper<BaseAddress> = createComponent(addressToChange)
+
+    addressToChange['streetAddress'] = differentStreet
+    wrapper.setProps({ address: { ...addressToChange } })
+
+    const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
+
+    expect(inputElement.element['value']).toEqual(differentStreet)
+  })
 })
