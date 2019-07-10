@@ -98,8 +98,7 @@ describe('BaseAddress.vue', () => {
     const wrapper: Wrapper<BaseAddress> = createComponent(address)
 
     const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
-    inputElement.element['value'] = basicAddress['streetAddress']
-    inputElement.trigger('input')
+    inputElement.setValue(basicAddress['streetAddress'])
 
     // The component should not be changing the property object.
     expect(address['streetAddress']).not.toEqual(basicAddress['streetAddress'])
@@ -256,8 +255,7 @@ describe('BaseAddress.vue', () => {
     const modifiedAddress: object = { ...basicAddress, streetAddress: differentStreet }
 
     const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
-    inputElement.element['value'] = differentStreet
-    inputElement.trigger('input')
+    inputElement.setValue(differentStreet)
 
     // The "input" event should contain the new address, for syncing the model back in the parent.
     expect(wrapper.emitted()['update:address']).toBeDefined()
