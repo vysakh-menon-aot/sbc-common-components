@@ -122,7 +122,7 @@ import { validationMixin } from 'vuelidate'
 import { required } from 'vuelidate/lib/validators'
 
 /**
- * The component for displaying and editing addresses.
+ * The component for displaying and editing an address.
  */
 @Component({
   mixins: [validationMixin],
@@ -153,7 +153,7 @@ export default class BaseAddress extends Vue {
   @Prop({ default: () => {} }) readonly address: object
 
   /**
-   * Indicates whether the address should be shown in editing mode (true) display mode (false).
+   * Indicates whether the address should be shown in editing mode (true) or display mode (false).
    */
   @Prop({ default: false }) readonly editing: boolean
 
@@ -174,7 +174,7 @@ export default class BaseAddress extends Vue {
   private isMounted: boolean
 
   /**
-   * The provinces for the address drop-down list.
+   * The provinces for the address region drop-down list.
    */
   private regions: string[] = [
     'BC', 'AB', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'
@@ -234,7 +234,7 @@ export default class BaseAddress extends Vue {
   }
 
   /**
-   * Watches changes to the address object, so that if the parent changes the data then the object copy of it that
+   * Watches changes to the address object, so that if the parent changes the data, then the object copy of it that
    * backs the display will be updated.
    */
   @Watch('address', { deep: true })

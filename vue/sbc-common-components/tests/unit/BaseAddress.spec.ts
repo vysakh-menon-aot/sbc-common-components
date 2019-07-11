@@ -43,7 +43,14 @@ const differentStreet: string = '13 Pig Sty Alley'
 const streetAddressSelector: string = '[name="street-address"]'
 const deliveryInstructionsSelector: string = '[name="delivery-instructions"]'
 
-// Convenience function for digging into the wrapper events and getting the last event for a given name.
+/**
+ * Returns the last event for a given name, to be used for testing event propagation in response to component changes.
+ *
+ * @param wrapper the wrapper for the component that is being tested.
+ * @param name the name of the event that is to be returned.
+ *
+ * @return the value of the last named event for the wrapper.
+ */
 function getLastEvent (wrapper: Wrapper<BaseAddress>, name: string): any {
   const eventsList: Array<any> = wrapper.emitted(name)
   const events: Array<any> = eventsList[eventsList.length - 1]
@@ -51,28 +58,36 @@ function getLastEvent (wrapper: Wrapper<BaseAddress>, name: string): any {
   return events[0]
 }
 
-// Factory for creating the component - with the most common values for the properties.
+/**
+ * Creates and mounts a component, so that it can be tested.
+ *
+ * @param address an object containing the address for the component. The default value is the {@link basicAddress}.
+ * @param editing a boolean that indicates whether the component should be in edit (true) or display (false) mode.
+ *     Default value is true.
+ *
+ * @return a Wrapper<BaseAddress> object with the given parameters.
+ */
 function createComponent (address: object = { ...basicAddress }, editing: boolean = true): Wrapper<BaseAddress> {
   return mount(BaseAddress, { propsData: { 'address': address, 'editing': editing } })
 }
 
 describe('BaseAddress.vue', () => {
   it('handles no address', () => {
-    // Don't use createComponent do it manually do the property can be missing.
+    // Don't use createComponent, do it manually so the property can be missing.
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress)
 
-    // The last "valid" event should indicate the the address is not valid.
+    // The last "valid" event should indicate that the address is not valid.
     expect(wrapper.emitted().valid).toBeDefined()
     expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
 
   it('handles an undefined address', () => {
-    // Don't use createComponent do it manually do the property can be undefined.
+    // Don't use createComponent, do it manually so the property can be undefined.
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
       propsData: { address: undefined }
     })
 
-    // The last "valid" event should indicate the the address is not valid.
+    // The last "valid" event should indicate that the address is not valid.
     expect(wrapper.emitted().valid).toBeDefined()
     expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
@@ -80,7 +95,7 @@ describe('BaseAddress.vue', () => {
   it('handles a null address', () => {
     const wrapper: Wrapper<BaseAddress> = createComponent(null)
 
-    // The last "valid" event should indicate the the address is not valid.
+    // The last "valid" event should indicate that the address is not valid.
     expect(wrapper.emitted().valid).toBeDefined()
     expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
@@ -88,7 +103,7 @@ describe('BaseAddress.vue', () => {
   it('handles an empty address', () => {
     const wrapper: Wrapper<BaseAddress> = createComponent({})
 
-    // The last "valid" event should indicate the the address is not valid.
+    // The last "valid" event should indicate that the address is not valid.
     expect(wrapper.emitted().valid).toBeDefined()
     expect(getLastEvent(wrapper, 'valid')).not.toBeTruthy()
   })
@@ -249,7 +264,7 @@ describe('BaseAddress.vue', () => {
     expect(getLastEvent(wrapper, 'modified')).not.toBeTruthy()
   })
 
-  it('sends an input when the form changes', () => {
+  it('sends an update:address when the form changes', () => {
     const wrapper: Wrapper<BaseAddress> = createComponent()
 
     const modifiedAddress: object = { ...basicAddress, streetAddress: differentStreet }
@@ -257,7 +272,7 @@ describe('BaseAddress.vue', () => {
     const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
     inputElement.setValue(differentStreet)
 
-    // The "input" event should contain the new address, for syncing the model back in the parent.
+    // The "update:address" event should contain the new address, for syncing the model back in the parent.
     expect(wrapper.emitted()['update:address']).toBeDefined()
     expect(getLastEvent(wrapper, 'update:address')).toMatchObject(modifiedAddress)
   })
