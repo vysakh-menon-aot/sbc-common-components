@@ -130,14 +130,13 @@ describe('BaseAddress.vue', () => {
     expect(wrapper.emitted().valid).toBeDefined()
     expect(getLastEvent(wrapper, 'valid')).toBeTruthy()
 
-    // Check that each of the fields appears in the display. Note that the Canada Post guideline says that addresses
-    // within Canada do not include the country.
+    // Check that each of the fields appears in the display.
     expect(wrapper.find('.address-block').text()).toContain(basicAddress['streetAddress'])
     expect(wrapper.find('.address-block').text()).toContain(basicAddress['streetAddressAdditional'])
     expect(wrapper.find('.address-block').text()).toContain(basicAddress['addressCity'])
     expect(wrapper.find('.address-block').text()).toContain(basicAddress['addressRegion'])
     expect(wrapper.find('.address-block').text()).toContain(basicAddress['postalCode'])
-    expect(wrapper.find('.address-block').text()).not.toContain(basicAddress['addressCountry'])
+    expect(wrapper.find('.address-block').text()).toContain(basicAddress['addressCountry'])
     expect(wrapper.find('.address-block').text()).toContain(basicAddress['deliveryInstructions'])
   })
 

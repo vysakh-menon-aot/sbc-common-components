@@ -30,9 +30,7 @@
             <span>&nbsp;{{ addressLocal.addressRegion }}</span>
             <span>&nbsp;&nbsp;{{ addressLocal.postalCode }}</span>
           </div>
-          <div class="address-block__info-row"
-               v-if="addressLocal.addressCountry !== 'Canada'"
-          >
+          <div class="address-block__info-row">
             {{ addressLocal.addressCountry }}
           </div>
           <div class="address-block__info-row"
