@@ -1,6 +1,6 @@
 {
   "name": "sbc-common-components",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "private": false,
   "description": "Common Vue Components to be used across SBC projects",
   "license": "Apache-2.0",
@@ -18,6 +18,7 @@
     "docs:build": "vuepress build docs"
   },
   "dependencies": {
+    "@types/vuelidate": "^0.7.4",
     "axios": "^0.18.0",
     "core-js": "^2.6.5",
     "lodash": "^4.17.11",

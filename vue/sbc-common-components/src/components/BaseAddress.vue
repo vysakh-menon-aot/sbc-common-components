@@ -55,6 +55,7 @@
                         name="street-address"
                         v-model="addressLocal.streetAddress"
                         :rules="streetRules"
+                        @click="enableAddressComplete"
           ></v-text-field>
         </div>
         <div class="form__row">
@@ -262,6 +263,83 @@ export default class BaseAddress extends Vue {
    */
   private static stringify (object: object): string {
     return JSON.stringify(object, (name: string, val: any) : any => { return val !== '' ? val : undefined })
+  }
+
+  /**
+   * Enables AddressComplete for this instance of the address.
+   */
+  private enableAddressComplete (): void {
+    // If you want to use this component with the Canada Post AddressComplete service, it needs the following:
+    //  1. The AddressComplete JavaScript script include must be done to set up "window.pca".
+    //  2. Your AddressComplete account key must be defined as "window.addressCompleteKey".
+    const pca = window['pca']
+    const key = window['addressCompleteKey']
+    if (!pca || !key) {
+      return
+    }
+
+    // Sets the id for all the form elements. If necessary this removes the id from previous elements.
+    this.moveElementId('street-address')
+    this.moveElementId('street-address-additional')
+    this.moveElementId('address-city')
+    this.moveElementId('postal-code')
+    this.moveElementId('address-region')
+    this.moveElementId('address-country')
+
+    // Destroy the old one if it exists, and create the new.
+
+    if (window['currentAddressComplete']) {
+      window['currentAddressComplete'].destroy()
+    }
+
+    window['currentAddressComplete'] = this.createAddressComplete(pca, key)
+  }
+
+  /**
+   * Sets the id attribute of the named element to the name. If there was a pre-existing element with the id already
+   * set, it will be unset.
+   *
+   * @param name the name of the element for which to set the id.
+   */
+  private moveElementId (name: string): void {
+    const oldElement = document.getElementById(name)
+    const thisElement = this.$el.querySelector('[name="' + name + '"]')
+
+    // If it's already set, don't do it again.
+    if (oldElement !== thisElement) {
+      if (oldElement) {
+        oldElement.id = ''
+      }
+
+      thisElement.id = name
+    }
+  }
+
+  /**
+   * Does the AddressComplete setup for this instance of the component.
+   *
+   * @param pca the Postal Code Anywhere object provided by AddressComplete.
+   * @param key the key for the Canada Post account that is to be charged for the lookups.
+   *
+   * @return an object that is a pca.Address instance.
+   */
+  private createAddressComplete (pca, key: string): object {
+    const addressFields = [
+      { element: 'street-address', field: 'Line1', mode: pca.fieldMode.DEFAULT },
+      { element: 'street-address-additional', field: 'Line2', mode: pca.fieldMode.POPULATE },
+      { element: 'address-city', field: 'City', mode: pca.fieldMode.POPULATE },
+      { element: 'postal-code', field: 'PostalCode', mode: pca.fieldMode.POPULATE },
+      { element: 'address-region', field: 'ProvinceCode', mode: pca.fieldMode.POPULATE },
+      { element: 'address-country', field: 'CountryName', mode: pca.fieldMode.COUNTRY }
+    ]
+
+    const options = {
+      key: key,
+      populate: true,
+      suppressAutocomplete: true
+    }
+
+    return new pca.Address(addressFields, options)
   }
 }
 

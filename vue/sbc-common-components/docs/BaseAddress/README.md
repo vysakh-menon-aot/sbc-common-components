@@ -26,7 +26,7 @@ changed. The parent can use the `.sync` modifier to update its version of the `a
  
 ## How to use the component
 
-**Sample Parent Class** 
+#### Sample Parent Class
 
 ```typescript
 @Component({
@@ -44,14 +44,33 @@ export default class ParentClass extends Vue {
 }
 ```
 
-**Sample Template**
+#### Sample Template
 
 ```html
   <...>
     <some-address :address.sync="address"
-                  :is-editing="isAddressEditing"
+                  :editing="isAddressEditing"
                   @modified="isAddressModified"
                   @valid="isAddressValid"
     />
   </...>
+```
+
+#### Sample Usage with Canada Post AddressComplete
+
+This component will work with the AddressComplete APIs from Canada Post. If you have an account to use
+AddressComplete, the following setup will turn it on for all instances of the component.
+
+```html
+  <html>
+    <head>
+      <!-- Include the CSS and JS from Canada Post -->
+      <link rel="stylesheet" type="text/css" href="http://ws1.postescanada-canadapost.ca/css/addresscomplete-2.00.min.css"/>
+      <script type="text/javascript" src="http://ws1.postescanada-canadapost.ca/js/addresscomplete-2.00.min.js"></script>
+
+      <script type="text/javascript">
+        // The key for your account.
+        window.addressCompleteKey = 'AB12-CD34-EF56-GH78'
+      </script>
+    [...]
 ```
