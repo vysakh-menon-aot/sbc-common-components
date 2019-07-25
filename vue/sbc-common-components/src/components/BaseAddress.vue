@@ -278,12 +278,9 @@ export default class BaseAddress extends Vue {
       return
     }
 
-    // Sets the id for all the form elements. If necessary this removes the id from previous elements.
+    // Sets the id for the two form elements that are used by the AddressComplete code. If necessary this removes the
+    // id from previous elements.
     this.moveElementId('street-address')
-    this.moveElementId('street-address-additional')
-    this.moveElementId('address-city')
-    this.moveElementId('postal-code')
-    this.moveElementId('address-region')
     this.moveElementId('address-country')
 
     // Destroy the old one if it exists, and create the new.
@@ -316,30 +313,46 @@ export default class BaseAddress extends Vue {
   }
 
   /**
-   * Does the AddressComplete setup for this instance of the component.
+   * Creates the AddressComplete object for this instance of the component.
    *
    * @param pca the Postal Code Anywhere object provided by AddressComplete.
-   * @param key the key for the Canada Post account that is to be charged for the lookups.
+   * @param key the key for the Canada Post account that is to be charged for lookups.
    *
    * @return an object that is a pca.Address instance.
    */
   private createAddressComplete (pca, key: string): object {
+    // Set up the two fields that AddressComplete will use for input.
     const addressFields = [
-      { element: 'street-address', field: 'Line1', mode: pca.fieldMode.DEFAULT },
-      { element: 'street-address-additional', field: 'Line2', mode: pca.fieldMode.POPULATE },
-      { element: 'address-city', field: 'City', mode: pca.fieldMode.POPULATE },
-      { element: 'postal-code', field: 'PostalCode', mode: pca.fieldMode.POPULATE },
-      { element: 'address-region', field: 'ProvinceCode', mode: pca.fieldMode.POPULATE },
-      { element: 'address-country', field: 'CountryName', mode: pca.fieldMode.COUNTRY }
+      { element: 'street-address', mode: pca.fieldMode.SEARCH },
+      { element: 'address-country', mode: pca.fieldMode.COUNTRY }
     ]
 
     const options = {
-      key: key,
-      populate: true,
-      suppressAutocomplete: true
+      key: key
     }
 
-    return new pca.Address(addressFields, options)
+    const addressComplete = new pca.Address(addressFields, options)
+
+    // The documentation contains sample load/populate callback code that doesn't work, but this will. The side effect
+    // is that it breaks the autofill functionality provided by the library, but we really don't want the library
+    // altering the DOM because Vue is already doing so, and the two don't play well together.
+    addressComplete.listen('populate', this.addressCompletePopulate)
+
+    return addressComplete
+  }
+
+  /**
+   * Updates the address data after the user chooses a suggested address.
+   *
+   * @param address the data object returned by the AddressComplete Retrieve API.
+   */
+  private addressCompletePopulate (address: object): void {
+    this.addressLocal['streetAddress'] = address['Line1']
+    this.addressLocal['streetAddressAdditional'] = address['Line2']
+    this.addressLocal['addressCity'] = address['City']
+    this.addressLocal['addressRegion'] = address['ProvinceCode']
+    this.addressLocal['postalCode'] = address['PostalCode']
+    this.addressLocal['addressCountry'] = address['CountryIso2']
   }
 }
 
