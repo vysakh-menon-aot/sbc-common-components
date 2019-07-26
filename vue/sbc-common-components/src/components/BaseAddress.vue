@@ -80,6 +80,7 @@
                     name="address-region"
                     v-model="addressLocal.addressRegion"
                     :items="regions"
+                    :rules="regionRules"
           ></v-select>
           <v-text-field box
                         class="item"
@@ -87,7 +88,7 @@
                         name="postal-code"
                         required
                         v-model="addressLocal.postalCode"
-                        :rules="regionRules"
+                        :rules="postalCodeRules"
           ></v-text-field>
         </div>
         <div class="form__row">
@@ -175,16 +176,16 @@ export default class BaseAddress extends Vue {
   /**
    * The provinces for the address region drop-down list.
    */
-  private regions: string[] = [
-    'BC', 'AB', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'
+  private readonly regions: string[] = [
+    'BC', 'AB', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT', '--'
   ]
 
   // TODO: Convert from Vuetify validation to Vuelidate using JSON Schema - temporarily using Vuetify for display.
-  private streetRules = [ v => !!v || 'A street address is required' ]
-  private cityRules = [ v => !!v || 'A city is required' ]
-  private regionRules = [ v => !!v || 'A province/state is required' ]
-  private postalCodeRules = [ v => !!v || 'A postal code is required' ]
-  private countryRules = [ v => !!v || 'A country is required' ]
+  private readonly streetRules = [ v => !!v || 'A street address is required' ]
+  private readonly cityRules = [ v => !!v || 'A city is required' ]
+  private readonly regionRules = [ v => !!v || 'A province is required' ]
+  private readonly postalCodeRules = [ v => !!v || 'A postal code is required' ]
+  private readonly countryRules = [ v => !!v || 'A country is required' ]
 
   /**
    * Lifecycle callback to convert the address JSON into an object, so that it can be used by the template.
@@ -350,9 +351,16 @@ export default class BaseAddress extends Vue {
     this.addressLocal['streetAddress'] = address['Line1']
     this.addressLocal['streetAddressAdditional'] = address['Line2']
     this.addressLocal['addressCity'] = address['City']
-    this.addressLocal['addressRegion'] = address['ProvinceCode']
-    this.addressLocal['postalCode'] = address['PostalCode']
     this.addressLocal['addressCountry'] = address['CountryIso2']
+
+    if (address['CountryIso2'] === 'CA') {
+      this.addressLocal['addressRegion'] = address['ProvinceCode']
+      this.addressLocal['postalCode'] = address['PostalCode']
+    } else {
+      // Not proud of this, but it'll do until we implement JSON Schema validation.
+      this.addressLocal['addressRegion'] = '--'
+      this.addressLocal['postalCode'] = address['PostalCode'] ? address['PostalCode'] : 'N/A'
+    }
   }
 }
 
