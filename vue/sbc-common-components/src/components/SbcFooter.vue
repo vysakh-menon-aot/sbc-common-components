@@ -1,16 +1,17 @@
 <template>
-    <footer class="app-footer" app>
-        <div class="container">
-            <nav>
-                <ul>
-                    <li><a href="#">Nav Item</a></li>
-                    <li><a href="#">Nav Item</a></li>
-                    <li><a href="#">Nav Item</a></li>
-                    <li><a href="#">Nav Item</a></li>
-                </ul>
-            </nav>
-        </div>
-    </footer>
+  <footer class="app-footer" app>
+    <div class="container">
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="https://www2.gov.bc.ca/gov/content/home/disclaimer">Disclaimer</a></li>
+          <li><a href="https://www2.gov.bc.ca/gov/content/home/privacy">Privacy</a></li>
+          <li><a href="https://www2.gov.bc.ca/gov/content/home/accessibility">Accessibility</a></li>
+          <li><a href="https://www2.gov.bc.ca/gov/content/home/copyright">Copyright</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
 </template>
 
 <script lang="ts">
@@ -22,36 +23,35 @@ export default Vue.extend({
 </script>
 
 <style lang="stylus" scoped>
-    @import "../assets/styl/theme.styl"
+  @import "../assets/styl/theme.styl"
 
-    .app-footer
-        background-color $BCgovBlue5
-        font-size 0.9375rem
+  .app-footer
+    background-color $BCgovBlue5
+    font-size 0.9375rem
 
+  nav
+    ul
+      margin 0
+      padding 0
+      list-style-type none
+
+    li
+      display block
+
+      a
+        color #fff
+        text-decoration none
+
+        &:hover
+          text-decoration underline
+
+  @media (min-width: 960px)
     nav
-        ul
-            margin 0
-            padding 0
-            list-style-type none
+      li
+        display inline-block
 
-        li
-            display block
-
-        a
-            color #fff
-            text-decoration none
-
-            &:hover
-                text-decoration underline
-
-    @media (min-width: 960px)
-        nav
-            li
-                display inline-block
-
-                + li
-                    margin-left 1rem
-                    padding-left 1rem
-                    border-left 1px solid $BCgovBlue3
-
+        + li
+          margin-left 1rem
+          padding-left 1rem
+          border-left 1px solid $BCgovBlue3
 </style>
