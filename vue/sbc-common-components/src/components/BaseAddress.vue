@@ -27,8 +27,8 @@
           </div>
           <div class="address-block__info-row">
             <span>{{ addressLocal.addressCity }}</span>
-            <span>&nbsp;{{ addressLocal.addressRegion }}</span>
-            <span>&nbsp;&nbsp;{{ addressLocal.postalCode }}</span>
+            <span v-if="addressLocal.addressRegion !== '--'">&nbsp;{{ addressLocal.addressRegion }}</span>
+            <span v-if="addressLocal.postalCode !== 'N/A'">&nbsp;&nbsp;{{ addressLocal.postalCode }}</span>
           </div>
           <div class="address-block__info-row">
             {{ addressLocal.addressCountry }}
@@ -333,6 +333,10 @@ export default class BaseAddress extends Vue {
     }
 
     const addressComplete = new pca.Address(addressFields, options)
+
+    // The "suppressAutocomplete" option flag no longer works in Chrome, and is no longer supported by Canada Post.
+    // Manually set the autocomplete attribute of the input field to some custom value.
+    this.$el.querySelector('[name="street-address"]')['autocomplete'] = 'address-complete'
 
     // The documentation contains sample load/populate callback code that doesn't work, but this will. The side effect
     // is that it breaks the autofill functionality provided by the library, but we really don't want the library
