@@ -47,6 +47,7 @@ export default {
 
                */
   props: {
+    payURL: String,
     filingData: {
       type: Array,
       default: function () {
@@ -65,8 +66,8 @@ export default {
   }),
 
   mounted () {
-    console.log('%c FeeMdoule-Data Recieved on Mount as %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData))
-    FeeServices.getFee(this.filingData).then(data => {
+    console.log('%c FeeMdoule-Data Recieved on Mount as %s %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData), this.payURL)
+    FeeServices.getFee(this.filingData, this.payURL).then(data => {
       this.fetchError = ''
       this.fees = data
     }).catch((error: any) => {
@@ -85,7 +86,7 @@ export default {
   watch: {
     filingData: function (newVal) {
       console.log('%c FeeMdoule-Watch Activated as %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData))
-      FeeServices.getFee(this.filingData).then((data: any) => {
+      FeeServices.getFee(this.filingData, this.payURL).then((data: any) => {
         this.fetchError = ''
         this.fees = data
       }).catch((error: any) => {

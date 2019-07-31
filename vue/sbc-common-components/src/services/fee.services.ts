@@ -7,8 +7,9 @@ import Axios from 'axios'
 const API_URL = 'https://pay-api-dev.pathfinder.gov.bc.ca/api/v1/fees'
 export default {
 
-  getFee (filingData: { filingDescription: string; filingTypeCode: string; entityType: string; }[]) {
+  getFee (filingData: { filingDescription: string; filingTypeCode: string; entityType: string; }[], payApiUrl:string) {
     const token = sessionStorage.getItem('KEYCLOAK_TOKEN')
+    console.log('payAPIURL' + payApiUrl)
     if (filingData.length < 1) {
       Promise.resolve()
     }
@@ -17,7 +18,7 @@ export default {
       if (!filing.filingTypeCode) {
         Promise.resolve()
       }
-      var url = `${API_URL}/${filing.entityType}/${filing.filingTypeCode}`
+      var url = `${payApiUrl}${filing.entityType}/${filing.filingTypeCode}`
 
       promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}` } }))
     }

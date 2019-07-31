@@ -1,12 +1,12 @@
 {
   "name": "sbc-common-components",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "private": false,
   "description": "Common Vue Components to be used across SBC projects",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/saravankumarpa/sbc-common-components.git"
+    "url": "https://github.com/bcgov/sbc-common-components.git"
   },
   "scripts": {
     "serve": "vue-cli-service serve",

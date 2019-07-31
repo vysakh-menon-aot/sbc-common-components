@@ -10,7 +10,7 @@ jest.mock('axios', () => ({
   virtual: true
 })
 
-const API_URL = 'https://pay-api-dev.pathfinder.gov.bc.ca/api/v1/fees'
+const API_URL = 'https://pay-api-dev.pathfinder.gov.bc.ca/api/v1/fees/'
 
 describe('with 1 fee in the list', () => {
   const results = []
@@ -23,11 +23,11 @@ describe('with 1 fee in the list', () => {
     Axios.all.mockResolvedValue(results)
     // @ts-ignore
     Axios.spread.mockReturnValue(mockAxiosSpreadResult)
-    FeeServices.getFee(filingCodes)
+    FeeServices.getFee(filingCodes, API_URL)
   })
 
-  it('should call Axios.get once for each student with name', () => {
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}/CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
+  it('should call Axios.get once for each Fee ', () => {
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
   })
 })
 
@@ -45,8 +45,8 @@ describe('with 2 fee in the list', () => {
   })
 
   it('should call Axios.get once for each student with name', () => {
-    FeeServices.getFee(filingCodes)
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}/CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}/CP/OTADD`, { 'headers': { 'Authorization': 'Bearer null' } })
+    FeeServices.getFee(filingCodes, API_URL)
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}CP/OTADD`, { 'headers': { 'Authorization': 'Bearer null' } })
   })
 })

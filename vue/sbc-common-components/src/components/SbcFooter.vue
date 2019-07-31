@@ -4,10 +4,10 @@
       <nav>
         <ul>
           <li><a href="/">Home</a></li>
-          <li><a href="https://www2.gov.bc.ca/gov/content/home/disclaimer">Disclaimer</a></li>
-          <li><a href="https://www2.gov.bc.ca/gov/content/home/privacy">Privacy</a></li>
-          <li><a href="https://www2.gov.bc.ca/gov/content/home/accessibility">Accessibility</a></li>
-          <li><a href="https://www2.gov.bc.ca/gov/content/home/copyright">Copyright</a></li>
+          <li><a href="https://www2.gov.bc.ca/gov/content/home/disclaimer" target="_blank">Disclaimer</a></li>
+          <li><a href="https://www2.gov.bc.ca/gov/content/home/privacy" target="_blank">Privacy</a></li>
+          <li><a href="https://www2.gov.bc.ca/gov/content/home/accessibility" target="_blank">Accessibility</a></li>
+          <li><a href="https://www2.gov.bc.ca/gov/content/home/copyright" target="_blank">Copyright</a></li>
         </ul>
       </nav>
     </div>
