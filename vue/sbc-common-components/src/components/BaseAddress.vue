@@ -50,7 +50,8 @@
               v-show="editing"
       >
         <div class="form__row">
-          <v-text-field box
+          <v-text-field autocomplete="address-complete"
+                        box
                         label="Street Address"
                         name="street-address"
                         v-model="addressLocal.streetAddress"
@@ -333,10 +334,6 @@ export default class BaseAddress extends Vue {
     }
 
     const addressComplete = new pca.Address(addressFields, options)
-
-    // The "suppressAutocomplete" option flag no longer works in Chrome, and is no longer supported by Canada Post.
-    // Manually set the autocomplete attribute of the input field to some custom value.
-    this.$el.querySelector('[name="street-address"]')['autocomplete'] = 'address-complete'
 
     // The documentation contains sample load/populate callback code that doesn't work, but this will. The side effect
     // is that it breaks the autofill functionality provided by the library, but we really don't want the library
