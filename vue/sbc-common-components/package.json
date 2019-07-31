@@ -1,6 +1,6 @@
 {
   "name": "sbc-common-components",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "private": false,
   "description": "Common Vue Components to be used across SBC projects",
   "license": "Apache-2.0",

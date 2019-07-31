@@ -41,10 +41,10 @@ describe('SbcHeader.vue', () => {
     jest.clearAllMocks()
   })
 
-  // temporary before figure out session mock, only check word 'Sign'
+  // sing shouldnt exist
   it('logout/in button exists', () => {
     expect(cmp.find('.v-btn').text().startsWith('Sign')).toBeTruthy()
-    expect(cmp.isVueInstance()).toBeTruthy()
+    expect(cmp.isVueInstance()).toBeFalsy()
   })
 
   it('logout/in button click invokes logout method', () => {

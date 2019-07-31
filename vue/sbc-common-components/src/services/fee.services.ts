@@ -18,7 +18,7 @@ export default {
       if (!filing.filingTypeCode) {
         Promise.resolve()
       }
-      var url = `${payApiUrl}${filing.entityType}/${filing.filingTypeCode}`
+      var url = `${payApiUrl}fees/${filing.entityType}/${filing.filingTypeCode}`
 
       promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}` } }))
     }
