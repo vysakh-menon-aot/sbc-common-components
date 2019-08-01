@@ -33,7 +33,6 @@ export default Vue.extend({
     logout () {
       AuthService.logout(sessionStorage.getItem('KEYCLOAK_REFRESH_TOKEN'), this.authURL).then(response => {
         if (response.status === 204) {
-          console.log('response' + response)
           sessionStorage.removeItem('KEYCLOAK_REFRESH_TOKEN')
           sessionStorage.removeItem('KEYCLOAK_TOKEN')
           sessionStorage.removeItem('REGISTRIES_TRACE_ID')

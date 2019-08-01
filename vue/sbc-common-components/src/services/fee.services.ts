@@ -9,7 +9,6 @@ export default {
 
   getFee (filingData: { filingDescription: string; filingTypeCode: string; entityType: string; }[], payApiUrl:string) {
     const token = sessionStorage.getItem('KEYCLOAK_TOKEN')
-    console.log('payAPIURL' + payApiUrl)
     if (filingData.length < 1) {
       Promise.resolve()
     }

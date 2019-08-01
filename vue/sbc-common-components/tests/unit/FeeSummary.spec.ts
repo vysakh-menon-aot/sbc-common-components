@@ -25,7 +25,6 @@ describe('SbcFeeSummary.vue', () => {
       propsData: { filingData }
     })
 
-    console.log(wrapper.html())
     expect(wrapper.findAll('header').exists()).toBe(true)
     expect(wrapper.text()).toContain('Fee Summary')
     expect(wrapper.text()).toContain('Total Fees')
