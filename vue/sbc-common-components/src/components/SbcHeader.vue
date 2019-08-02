@@ -36,7 +36,8 @@ export default Vue.extend({
           sessionStorage.removeItem('KEYCLOAK_REFRESH_TOKEN')
           sessionStorage.removeItem('KEYCLOAK_TOKEN')
           sessionStorage.removeItem('REGISTRIES_TRACE_ID')
-          window.location.assign('/')
+          sessionStorage.removeItem('AUTH_WEB')
+          window.location.assign('/auth')
         } else {
           console.log('Logout failed. ' + response)
         }
