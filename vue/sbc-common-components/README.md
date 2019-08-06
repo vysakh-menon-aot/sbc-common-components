@@ -17,11 +17,11 @@ and use individual components as you want
 
 use npm link for local dev.
 ```
-go to the project root 
+go to the sbc-common-components project root 
 
 npm link
 
-Go to the client project [where this module is being used]
+Go to the client project [where this module is being used] [ie SBC-AUTH or COOPS-WEB project]
 
 npm link sbc-common-components
 ```
