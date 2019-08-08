@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="layout-wrapper">
     <sbc-header></sbc-header>
     <div class="app-body">
       <div class="app-body__inner">
@@ -31,7 +31,7 @@ export default Vue.extend({
 <style lang="stylus">
   $app-header-height = 70px // 70px
 
-  .app-container
+  .layout-wrapper
     display flex
     flex-flow column nowrap
     min-height 100vh
