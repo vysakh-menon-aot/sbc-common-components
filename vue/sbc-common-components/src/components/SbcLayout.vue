@@ -2,7 +2,9 @@
   <div class="layout-wrapper">
     <sbc-header></sbc-header>
     <div class="app-body">
+      <slot name="app-body"></slot>
       <div class="app-body__inner">
+        <slot name="app-body_inner"></slot>
         <div class="container">
           <main>
             <slot></slot>
