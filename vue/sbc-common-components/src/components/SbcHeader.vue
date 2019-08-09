@@ -1,10 +1,10 @@
 <template>
-  <header class="app-header" fixed app>
+  <header class="app-header">
     <div class="container">
       <a href="/" class="navbar-brand">
         <img class="brand-img" src="../assets/img/gov3_bc_logo.png"
-          alt="Province of British Columbia Logo"
-          title="Province of British Columbia"/>
+             alt="Province of British Columbia Logo"
+             title="Province of British Columbia"/>
       </a>
       <span class="brand-title">BC Registries & Online Services</span>
       <div class="app-header__actions">
@@ -53,8 +53,7 @@ export default Vue.extend({
   @import "../assets/styl/theme.styl"
 
   .app-header
-    position fixed
-    width 100%
+    height 70px
     color #fff
     border-bottom 3px solid $BCgovGold5
     background-color $BCgovBlue5
@@ -66,12 +65,12 @@ export default Vue.extend({
       padding-bottom 0
 
   .app-header__actions
-      margin-left auto
+    margin-left auto
 
-    .v-btn
-      margin-right 0
-      color #ffffff
-      border-color #ffffff
+  .v-btn
+    margin-right 0
+    color #ffffff
+    border-color #ffffff
 
   .brand-img
     margin-top 0.3rem
@@ -80,5 +79,5 @@ export default Vue.extend({
   .brand-title
     margin-top 0.2rem
     font-size 1.125rem
-    font-weight 300
+    font-weight 400
 </style>
