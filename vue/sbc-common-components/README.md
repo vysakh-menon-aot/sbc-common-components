@@ -1,6 +1,6 @@
 # sbc-common-components
 
-The common components for all vue projects in SBC can reside here..
+The common components for all vue projects in SBC can reside here
 
 [visit the github page ](https://saravankumarpa.github.io/sbc-common-components/)
 
