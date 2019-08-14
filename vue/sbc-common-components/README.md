@@ -54,7 +54,7 @@ npm run test:unit
 ### Components
 
 
-[visit the github page ](https://saravankumarpa.github.io/sbc-common-components/FeeCalculator/)
+[visit the github page ](https://bcgov.github.io/sbc-common-components/FeeCalculator/)
 
 
 
