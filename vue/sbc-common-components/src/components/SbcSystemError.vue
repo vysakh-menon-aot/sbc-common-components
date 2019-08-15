@@ -57,6 +57,7 @@ export default class SbcSystemError extends Vue {
 
 <style lang="stylus" scoped>
     @import '../assets/styl/theme.styl';
+    @import '../assets/styl/overrides.styl';
     article
         .v-card
             line-height: 1.2rem;

@@ -33,6 +33,7 @@ export default class SbcSystemErrorModal extends Vue {
 
 <style lang="stylus" scoped>
     @import '../assets/styl/theme.styl';
+    @import '../assets/styl/overrides.styl';
     article
         .v-card
             line-height: 1.2rem;
@@ -57,4 +58,5 @@ export default class SbcSystemErrorModal extends Vue {
             margin-left: 0.5rem;
     .error-dialog-padding
         margin-left: 1rem;
+
 </style>
