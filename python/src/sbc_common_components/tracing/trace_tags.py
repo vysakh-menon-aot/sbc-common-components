@@ -11,15 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tags define for tracing.
 
 This file manage all tracing tags.
 """
 
 
-class TraceTags:
-    """Manages all tags for tracing. """
+class TraceTags:  # pylint: disable=too-few-public-methods
+    """Manages all tags for tracing."""
 
     HTTP_STATUS_CODE = 'http.status_code'
     NR_NUMBER = 'nr.number'

@@ -1,0 +1,3 @@
+flask
+Flask-OpenTracing==1.0.0
+opentracing==2.0.0
