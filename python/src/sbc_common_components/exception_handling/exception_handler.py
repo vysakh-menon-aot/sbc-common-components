@@ -35,8 +35,7 @@ class ExceptionHandler():
     def db_handler(self, error):  # pylint: disable=no-self-use
         """Handle Database error."""
         response = {'error': '{}'.format(error.__dict__['code']),
-                    'message': '{}'.format(str(error.__dict__['orig']))}
-        response.status_code = 500
+                    'message': '{}'.format(str(error.__dict__['orig']))}, 500
         return response
 
     def std_handler(self, error):  # pylint: disable=no-self-use
