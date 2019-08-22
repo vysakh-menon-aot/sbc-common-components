@@ -21,7 +21,6 @@ from typing import Dict
 
 
 def convert_to_camel(response):
-
     def camelcase(string):
         """ Convert a snake_cased string to camelCase. """
         if "_" not in string or string.startswith('_'):
@@ -40,7 +39,8 @@ def convert_to_camel(response):
             if isinstance(value, list):
                 camel_dict[key] = []
                 for list_value in value:
-                    camel_dict[key].append(camelcase_dict(list_value, {}))
+                    camel_dict[key].append(
+                        list_value if isinstance(list_value, str) else camelcase_dict(list_value, {}))
             else:
                 camel_dict[key] = value
 
