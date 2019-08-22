@@ -36,7 +36,10 @@ export default Vue.extend({
       list-style-type none
 
     li
-      display block
+      display inline-block
+      padding-right 1rem
+      margin-right 1rem
+      border-right 1px solid $BCgovBlue3
 
       a
         color #fff
@@ -45,13 +48,7 @@ export default Vue.extend({
         &:hover
           text-decoration underline
 
-  @media (min-width: 960px)
-    nav
-      li
-        display inline-block
-
-        + li
-          margin-left 1rem
-          padding-left 1rem
-          border-left 1px solid $BCgovBlue3
+    li:last-child
+      margin-right 0
+      border-right none 
 </style>
