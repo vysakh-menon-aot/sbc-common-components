@@ -31,17 +31,17 @@ export default Vue.extend({
 
   nav
     ul
-      margin 0
+      margin -0.5rem
       padding 0
       list-style-type none
 
     li
       display inline-block
-      padding-right 1rem
-      margin-right 1rem
-      border-right 1px solid $BCgovBlue3
+      margin-right 0.25rem
 
       a
+        display block
+        padding 0.25rem 0.5rem
         color #fff
         text-decoration none
 
@@ -51,4 +51,14 @@ export default Vue.extend({
     li:last-child
       margin-right 0
       border-right none 
+
+  @media (min-width: 960px)
+    nav
+      li 
+        margin-right 0.5rem
+        padding-right 0.5rem
+        border-right 1px solid $BCgovBlue3
+
+        a 
+          padding 0.25rem 0.5rem
 </style>
