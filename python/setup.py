@@ -1,11 +1,35 @@
-from setuptools import setup
+# Copyright © 2019 Province of British Columbia.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Installer and setup for this module
+"""
+from glob import glob
+from os.path import basename, splitext
 
-'''
-sbc-common-components
------------------
+from setuptools import find_packages, setup
 
-This extension provides simple integration of SBC common components application.
-'''
+
+def read_requirements(filename):
+    """
+    Get application requirements from
+    the requirements.txt file.
+    :return: Python requirements
+    :rtype: list
+    """
+    with open(filename, 'r') as req:
+        requirements = req.readlines()
+    install_requires = [r.strip() for r in requirements if r.find('git+') != 0]
+    return install_requires
 
 
 def read(filepath):
@@ -20,19 +44,17 @@ def read(filepath):
     return content
 
 
-version = open('VERSION').read()
+REQUIREMENTS = read_requirements('requirements/prod.txt')
+
+
 setup(
-    name='sbc-common-components',
-    version=version,
+    name='sbc_common_components',
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
     include_package_data=True,
     license=read('LICENSE'),
     long_description=read('README.md'),
     zip_safe=False,
-    packages=['sbc_common_components', 'tests'],
-    platforms='any',
-    install_requires=['Flask-OpenTracing==1.0.0', 'opentracing>=2.0,<2.1'],
-    dependency_links=[
-        "git+https://github.com/pwei1018/jaeger-client-python.git@186f14e14758273ed108508c0d388a4f4de5c75b#egg=jaeger-client"
-    ],
-    extras_require={'tests': []},
+    install_requires=REQUIREMENTS,
 )

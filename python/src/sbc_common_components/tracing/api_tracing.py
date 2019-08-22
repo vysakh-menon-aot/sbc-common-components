@@ -12,19 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Class to extend FlaskTracing."""
-
-from opentracing.propagation import Format
 from flask_opentracing import FlaskTracing
+from opentracing.propagation import Format
 
 
 class ApiTracing(FlaskTracing):
-    """
-    Enable tracing that can trace certain API endpoint.
-    """
+    """Enable tracing that can trace certain API endpoint."""
 
     def inject_tracing_header(self, response_header, tracer=None):
-        """
-        Function to inject the tracing header to http response .
+        """Inject the tracing header to http response .
 
         Arguments:
             response_header {json} -- http response
@@ -37,8 +33,7 @@ class ApiTracing(FlaskTracing):
         current_tracer.inject(current_span, Format.HTTP_HEADERS, response_header)
 
     def add_span_tag(self, tag_name: str, tag_context: str):
-        """
-        Function to add a span tag to current active span
+        """Add a span tag to current active span.
 
         Arguments:
             tag_name {str} -- name of tag
