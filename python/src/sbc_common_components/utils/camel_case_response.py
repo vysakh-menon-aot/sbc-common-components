@@ -45,6 +45,6 @@ def convert_to_camel(response):
                 camel_dict[key] = value
 
         return camel_dict
-
-    response.set_data(json.dumps(camelcase_dict(json.loads(response.get_data()), {})))
+    if response.headers['Content-Type'] == 'application/json':
+        response.set_data(json.dumps(camelcase_dict(json.loads(response.get_data()), {})))
     return response
