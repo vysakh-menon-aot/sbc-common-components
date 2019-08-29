@@ -38,19 +38,7 @@ export default Vue.extend({
   },
   methods: {
     logout () {
-      AuthService.logout(sessionStorage.getItem('KEYCLOAK_REFRESH_TOKEN'), this.authURL).then(response => {
-        if (response.status === 204) {
-          sessionStorage.removeItem('KEYCLOAK_REFRESH_TOKEN')
-          sessionStorage.removeItem('KEYCLOAK_TOKEN')
-          sessionStorage.removeItem('REGISTRIES_TRACE_ID')
-          sessionStorage.removeItem('AUTH_WEB')
-          window.location.assign('/auth')
-        } else {
-          console.log('Logout failed. ' + response)
-        }
-      }).catch((error: any) => {
-        console.log('fetchError' + error)
-      })
+      window.location.assign('/auth/signout')
     }
   }
 })
