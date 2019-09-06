@@ -4,47 +4,44 @@ import { mount, createLocalVue } from '@vue/test-utils'
 import Vue from 'vue'
 import Vuetify from 'vuetify'
 import VueRouter from 'vue-router'
-import AuthServices from '../../src/services/auth.services'
-import axios from 'axios'
 
 Vue.use(Vuetify)
 Vue.use(VueRouter)
 
 jest.mock('axios', () => ({
-  post: jest.fn(() => Promise.resolve({ data: { access_token: 'abcd', refresh_token: 'efgh', registries_trace_id: '12345abcde' } }))
+  post: jest.fn(() =>
+    Promise.resolve({ data: { access_token: 'abcd', refresh_token: 'efgh', registries_trace_id: '12345abcde' } })
+  )
 }))
 
 describe('SbcHeader.vue', () => {
   let cmp
 
   beforeEach(() => {
+    sessionStorage.setItem('KEYCLOAK_TOKEN', 'abcd')
+
     const localVue = createLocalVue()
     localVue.use(Vuex)
 
-    const store = new Vuex.Store({
-      modules: {
-        logout: {
+    let vuetify = new Vuetify({})
 
-        }
-      }
-    })
-    const $t = () => {
-      sessionStorage.setItem('KEYCLOAK_TOKEN', 'abcd')
-    }
+    const store = new Vuex.Store({
+      modules: { logout: {} } })
+
     cmp = mount(SBCHeader, {
       store,
       localVue,
-      mocks: { $t }
+      vuetify
     })
 
     jest.resetModules()
     jest.clearAllMocks()
   })
 
-  // sing shouldnt exist
+  // Sign in shouldnt exist
   it('logout/in button exists', () => {
     expect(cmp.find('.v-btn').text().startsWith('Sign')).toBeTruthy()
-    expect(cmp.isVueInstance()).toBeFalsy()
+    expect(cmp.isVueInstance()).toBeTruthy()
   })
 
   it('logout/in button click invokes logout method', () => {
