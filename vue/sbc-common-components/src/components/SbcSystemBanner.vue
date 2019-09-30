@@ -1,9 +1,6 @@
 <template>
-    <v-alert v-model="show"  :color="type" :dismissible = dismissible>
-        <v-container class="system-alert__inner">
-            <v-icon class="system-alert__icon" color="#ffffff">{{type}}</v-icon>
-            <div class="system-alert__msg">{{ message }}</div>
-        </v-container>
+    <v-alert v-model="show" :type="type" :icon="icon" :dismissible = dismissible>
+        {{ message }}
     </v-alert>
 </template>
 
@@ -16,7 +13,8 @@ import { Component, Prop } from 'vue-property-decorator'
 @Component
 export default class SbcSystemBanner extends Vue {
     @Prop({ default: '' }) message: string
-    @Prop({ default: 'info' }) type: string // Accepted values are 'info', 'warning', 'danger', 'success'
+    @Prop({ default: 'info' }) type: string // Accepted values are 'info', 'warning', 'danger', 'success',
+    @Prop({ default: 'info' }) icon: string // See https://material.io/resources/icons/?style=baseline for accepted values
     @Prop({ default: false }) show: boolean
     @Prop({ default: false }) dismissible: boolean
 
@@ -26,29 +24,17 @@ export default class SbcSystemBanner extends Vue {
 </script>
 
 <style lang="scss" scoped>
-    .v-alert{
+    .v-alert {
         margin: 0;
         padding: 0;
-        overflow: hidden;
         border: none;
-        z-index: 2;
+        border-radius: 0;
     }
 
-    .system-alert__inner{
-        position: relative;
-        display: flex;
-        align-items: center;
-        padding: 1.15rem 1.5rem;
-    }
-
-    .system-alert__icon{
-        position: absolute;
-        top: 1rem;
-        left: 1.5rem;
-    }
-
-    .system-alert__msg{
-        margin-left: 2.5rem;
-        font-weight: 500;
+    .v-alert >>> .v-alert__wrapper {
+        margin: 0 auto;
+        padding: 1.25rem 1.5rem;
+        max-width: 1200px;
+        overflow: hidden;
     }
 </style>
