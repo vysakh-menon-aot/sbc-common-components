@@ -38,7 +38,7 @@ export default Vue.extend({
   },
   methods: {
     logout () {
-      window.location.assign('/auth/signout')
+      window.location.assign('/cooperatives/auth/signout')
     }
   }
 })
