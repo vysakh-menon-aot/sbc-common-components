@@ -1,7 +1,7 @@
 <template>
   <header class="app-header">
     <div class="container">
-      <a href="/" class="brand">
+      <a href="/cooperatives/" class="brand">
         <picture>
           <source media="(min-width: 601px)"
             srcset="../assets/img/gov_bc_logo_horiz.png">
