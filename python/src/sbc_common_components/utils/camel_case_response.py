@@ -32,19 +32,20 @@ def convert_to_camel(response):
 
     def camelcase_dict(data: Dict[str, any], camel_dict: Dict[str, any]):
         """ Iterate through the dict and convert to camel case. """
-        for key, value in data.items():
-            key = camelcase(key)
-            if isinstance(value, dict):
-                camel_dict[key] = camelcase_dict(value, {})
-            if isinstance(value, list):
-                camel_dict[key] = []
-                for list_value in value:
-                    camel_dict[key].append(
-                        list_value if isinstance(list_value, str) else camelcase_dict(list_value, {}))
-            else:
-                camel_dict[key] = value
+        if data:
+            for key, value in data.items():
+                key = camelcase(key)
+                if isinstance(value, dict):
+                    camel_dict[key] = camelcase_dict(value, {})
+                if isinstance(value, list):
+                    camel_dict[key] = []
+                    for list_value in value:
+                        camel_dict[key].append(
+                            list_value if isinstance(list_value, str) else camelcase_dict(list_value, {}))
+                else:
+                    camel_dict[key] = value
 
-        return camel_dict
+            return camel_dict
     if response.headers['Content-Type'] == 'application/json':
         response.set_data(json.dumps(camelcase_dict(json.loads(response.get_data()), {})))
     return response
