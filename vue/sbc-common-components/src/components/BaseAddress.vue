@@ -88,7 +88,7 @@
                     v-model="addressLocal.addressRegion"
                     :items="getCountryRegions(countryCode)"
                     :rules="rules.addressRegion"
-                    :disabled="isSchemaBC()"
+                    :readonly="isSchemaBC()"
           />
           <v-text-field v-else
                         filled
@@ -116,7 +116,7 @@
                     v-model="addressLocal.addressCountry"
                     :items="getCountries()"
                     :rules="rules.addressCountry"
-                    :disabled="isSchemaCanada()"
+                    :readonly="isSchemaCanada()"
           />
         </div>
         <div class="form__row">
