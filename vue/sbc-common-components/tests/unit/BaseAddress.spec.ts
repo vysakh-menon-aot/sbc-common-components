@@ -360,12 +360,17 @@ describe('BaseAddress - validation tests', () => {
   })
 
   it('is invalid with missing region', async () => {
-    const wrapper: Wrapper<BaseAddress> = createComponent() // initially valid as above
-
-    // Set a blank address region value.
-    // NB: toggle addressRegion to resolve any conflict with other tests
-    await wrapper.setData({ addressLocal: { addressRegion: null } })
-    await wrapper.setData({ addressLocal: { addressRegion: '' } })
+    // you can't "unselect" a v-select, so just create component without region
+    const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      propsData: {
+        address: { addressRegion: null },
+        editing: true,
+        schema: {
+          addressRegion: { required }
+        }
+      },
+      vuetify
+    })
 
     // Validate the form so any error messages are displayed.
     const form = wrapper.vm.$refs.addressForm as any
@@ -400,12 +405,17 @@ describe('BaseAddress - validation tests', () => {
   })
 
   it('is invalid with missing country', async () => {
-    const wrapper: Wrapper<BaseAddress> = createComponent() // initially valid as above
-
-    // Set a blank address country value.
-    // NB: toggle addressCountry to resolve any conflict with other tests
-    await wrapper.setData({ addressLocal: { addressCountry: null } })
-    await wrapper.setData({ addressLocal: { addressCountry: '' } })
+    // you can't "unselect" a v-select, so just create component without country
+    const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      propsData: {
+        address: { addressCountry: null },
+        editing: true,
+        schema: {
+          addressCountry: { required }
+        }
+      },
+      vuetify
+    })
 
     // Validate the form so any error messages are displayed.
     const form = wrapper.vm.$refs.addressForm as any
@@ -444,6 +454,30 @@ describe('BaseAddress - validation tests', () => {
 })
 
 describe('BaseAddress - validation rules', () => {
+  it('handles "required" rule', async () => {
+    const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      propsData: {
+        address: { addressCountry: '' },
+        editing: true,
+        schema: {
+          addressCountry: { required }
+        }
+      },
+      vuetify
+    })
+
+    // Validate the form for Vuetify to display errors.
+    const form = wrapper.vm.$refs['addressForm'] as any
+    await form.validate()
+
+    // The last "valid" event should indicate that the address is invalid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).toBe(false)
+
+    // Check that 'minimum length' message is displayed.
+    expect(wrapper.find('[name="address-form"]').text()).toContain('This field is required')
+  })
+
   it('handles "minLength" rule', async () => {
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
       propsData: {
@@ -515,8 +549,8 @@ describe('BaseAddress - validation rules', () => {
     // Check that 'must be Canada' message is displayed.
     expect(wrapper.find('[name="address-form"]').text()).toContain('Address must be in Canada')
 
-    // Check that country input control is disabled.
-    expect(wrapper.find('[name="address-country"]').attributes('disabled')).toBeTruthy()
+    // Check that country input control is readonly.
+    expect(wrapper.find('[name="address-country"]').attributes('readonly')).toBe('readonly')
   })
 
   it('handles "isBC" rule', async () => {
@@ -542,7 +576,72 @@ describe('BaseAddress - validation rules', () => {
     // Check that 'must be Canada' message is displayed.
     expect(wrapper.find('[name="address-form"]').text()).toContain('Address must be in BC')
 
-    // Check that region input control is disabled.
-    expect(wrapper.find('[name="address-region"]').attributes('disabled')).toBeTruthy()
+    // Check that region input control is readonly.
+    expect(wrapper.find('[name="address-region"]').attributes('readonly')).toBe('readonly')
+  })
+})
+
+describe('BaseAddress - conditional validation', () => {
+  it('sets region as required when country is Canada', async () => {
+    const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      propsData: {
+        address: {
+          addressRegion: null,
+          addressCountry: 'ZZ'
+        },
+        editing: true,
+        schema: {
+          addressRegion: { } // need non-empty schema
+        }
+      },
+      vuetify
+    })
+
+    // Set country to Canada to set 'required' validation.
+    await wrapper.setData({ addressLocal: { addressCountry: 'CA' } })
+
+    // Validate the form for Vuetify to display errors.
+    const form = wrapper.vm.$refs['addressForm'] as any
+    await form.validate()
+
+    // The last "valid" event should indicate that the address is not valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).toBe(false)
+
+    // Check that 'required' message is displayed.
+    expect(wrapper.find('[name="address-form"]').text()).toContain('This field is required')
+  })
+
+  it('sets region as optional when country is not Canada', async () => {
+    const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      propsData: {
+        address: {
+          addressRegion: null,
+          addressCountry: 'CA'
+        },
+        editing: true,
+        schema: {
+          addressRegion: { } // need non-empty schema
+        }
+      },
+      vuetify
+    })
+
+    // Set country to "not Canada" to unset 'required' validation.
+    await wrapper.setData({ addressLocal: { addressCountry: 'ZZ' } })
+
+    // Validate the form for Vuetify to display errors.
+    const form = wrapper.vm.$refs['addressForm'] as any
+    await form.validate()
+
+    // The last "valid" event should indicate that the address is valid.
+    expect(wrapper.emitted().valid).toBeDefined()
+    expect(getLastEvent(wrapper, 'valid')).toBe(true)
+
+    // Check that 'optional' message is displayed.
+    expect(wrapper.find('[name="address-form"]').text()).toContain('Province/State (Optional)')
+
+    // Check that 'required' message is not displayed.
+    expect(wrapper.find('[name="address-form"]').text()).not.toContain('This field is required')
   })
 })

@@ -31,7 +31,7 @@
             <span v-if="addressLocal.postalCode !== 'N/A'">&nbsp;&nbsp;{{ addressLocal.postalCode }}</span>
           </div>
           <div class="address-block__info-row">
-            {{ getCountryName(countryCode) }}
+            {{ getCountryName(addressCountry) }}
           </div>
           <div class="address-block__info-row"
                v-if="addressLocal.deliveryInstructions"
@@ -77,7 +77,7 @@
                         v-model="addressLocal.addressCity"
                         :rules="rules.addressCity"
           />
-          <v-select v-if="useCountryRegions(countryCode)"
+          <v-select v-if="useCountryRegions(addressCountry)"
                     filled
                     class="item"
                     :menu-props="{maxHeight:'40rem'}"
@@ -86,7 +86,7 @@
                     item-text="name"
                     item-value="short"
                     v-model="addressLocal.addressRegion"
-                    :items="getCountryRegions(countryCode)"
+                    :items="getCountryRegions(addressCountry)"
                     :rules="rules.addressRegion"
                     :readonly="isSchemaBC()"
           />
@@ -97,6 +97,7 @@
                         name="address-region"
                         v-model="addressLocal.addressRegion"
                         :rules="rules.addressRegion"
+                        :readonly="isSchemaBC()"
           />
           <v-text-field filled
                         class="item"
@@ -118,6 +119,8 @@
                     :rules="rules.addressCountry"
                     :readonly="isSchemaCanada()"
           />
+          <!-- special field to select PCA country, separate from our model field -->
+          <input type="hidden" name="address-country-pca" :value="addressCountry" />
         </div>
         <div class="form__row">
           <v-textarea auto-grow
@@ -137,27 +140,30 @@
 <script lang="ts">
 
 import Vue from 'vue'
+import { required } from 'vuelidate/lib/validators'
 import { Component, Mixins, Emit, Prop, Watch } from 'vue-property-decorator'
 import { Validation } from 'vue-plugin-helper-decorator'
+import set from 'lodash.set'
+import unset from 'lodash.unset'
 import ValidationMixin from '../mixins/validation-mixin'
 import CountriesProvincesMixin from '../mixins/countries-provinces-mixin'
 
 /**
  * The component for displaying and editing an address.
+ * Vuelidate is used to implement the validation rules (eg, what 'required' means and whether it's satisfied).
+ * Vuetify is used to display any validation errors/styling.
  */
 @Component({
   mixins: [ValidationMixin, CountriesProvincesMixin]
 })
 export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvincesMixin) {
   /**
-   * The validation object used by Vuelidate to compute address validity.
-   * @returns The Vuelidate validation rules object.
+   * The validation object used by Vuelidate to compute address model validity.
+   * @returns The Vuelidate validations object.
    */
   @Validation()
   public validations (): any {
-    return {
-      addressLocal: this.schema || {}
-    }
+    return { addressLocal: { ...this.schemaLocal } }
   }
 
   /**
@@ -171,20 +177,26 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
   @Prop({ default: false }) readonly editing: boolean
 
   /**
-   * The Address schema containing Vuelidate rules.
+   * The address schema containing Vuelidate rules.
    */
   @Prop({ default: null }) readonly schema: any
 
   /**
-   * A local copy of the address object, to contain the fields edited by the component.
+   * A local (working) copy of the address, to contain the fields edited by the component (ie, the model).
    */
   private addressLocal: object = { ...this.address }
 
   /**
-   * A copy of the address that the component was originally created with. This is used to determine whether or not the
-   * address has been edited by the user.
+   * A copy of the address that the component was originally created with. This is used to determine whether or not
+   * the address has been edited by the user.
    */
   private addressOriginal: object = { ...this.address }
+
+  /**
+   * A local (working) copy of the address schema.
+   */
+  // TODO: this misses the initial country setting (re: on edit)
+  private schemaLocal: any = { ...this.schema }
 
   /**
    * Has this component been mounted yet? Initially unset, but will be set by the {@link mounted} lifecycle callback.
@@ -192,10 +204,9 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
   private isMounted: boolean = false
 
   /**
-   * Getter for country code of current address.
-   * @returns The current country code.
+   * Getter for Address Country, to simplify template and so we can watch it below.
    */
-  private get countryCode (): string {
+  private get addressCountry (): string {
     return this.addressLocal['addressCountry']
   }
 
@@ -251,20 +262,24 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
     return 'Delivery Instructions' + (this.isSchemaRequired('deliveryInstructions') ? '' : ' (Optional)')
   }
 
+  /**
+   * Helpers to check schema validations.
+   * @returns Whether the subject schema validation is present.
+   */
   private isSchemaRequired (prop: string): boolean {
-    return Boolean(this.schema && this.schema[prop] && this.schema[prop].required)
+    return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].required)
   }
 
   private isSchemaCanada (prop: string = 'addressCountry'): boolean {
-    return Boolean(this.schema && this.schema[prop] && this.schema[prop].isCanada)
+    return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].isCanada)
   }
 
   private isSchemaBC (prop: string = 'addressRegion'): boolean {
-    return Boolean(this.schema && this.schema[prop] && this.schema[prop].isBC)
+    return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].isBC)
   }
 
   /**
-   * Vuetify validation rules. Used for display purposes.
+   * Getter for Vuetify rules object. Used to display any validation errors/styling.
    * @remark As a getter, this is initialized between created() and mounted().
    * @returns The Vuetify validation rules object.
    */
@@ -290,18 +305,13 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
 
   /**
    * Emits an update message for the {@link address} property, so that the caller can ".sync" with it.
-   *
-   * @returns the {@link addressLocal} object.
    */
   @Emit('update:address')
-  private emitAddress (): object {
-    return this.addressLocal
-  }
+  private emitAddress (val: object): void { }
 
   /**
    * Emits the Vuelidate state of the address entered by the user.
-   *
-   * @returns a boolean that is true if the address if valid, false otherwise.
+   * @returns A boolean that is True if the address if valid, or False otherwise.
    */
   @Emit('valid')
   private emitValid (): boolean {
@@ -309,14 +319,10 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
   }
 
   /**
-   * Emits the modified state of the address.
-   *
-   * @returns a boolean that is true if the address has been modified, false otherwise.
+   * Emits True if the address is modified, or False otherwise.
    */
   @Emit('modified')
-  private emitModified (): boolean {
-    return BaseAddress.stringify(this.addressOriginal) !== BaseAddress.stringify(this.addressLocal)
-  }
+  private emitModified (val: boolean): void { }
 
   /**
    * Watches changes to the address object, so that if the parent changes the data, then the object copy of it that
@@ -328,15 +334,37 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
   }
 
   /**
+   * Watches changes to the Address Country and updates the schema accordingly.
+   */
+  @Watch('addressCountry')
+  private onAddressCountryChanged (): void {
+    // skip this if component is called without a schema (eg, display mode)
+    if (this.schema) {
+      // NB: Vue does not detect property addition or deletion, so re-assign the local schema.
+      // Ref: https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+      const addressRegion = { ...this.schema.addressRegion }
+      // if we are using a region list for the current country then make region a required field
+      if (this.useCountryRegions(this.addressLocal['addressCountry'])) {
+        set(addressRegion, 'required', required)
+      } else {
+        unset(addressRegion, 'required')
+      }
+      this.schemaLocal = { ...this.schema, addressRegion }
+    }
+  }
+
+  /**
    * Watches changes to the addressLocal object, to catch any changes to the fields within the address. Will notify the
    * parent object with the new address and whether or not the address is valid.
    */
   @Watch('addressLocal', { deep: true, immediate: true })
   private onAddressLocalChanged (): void {
     if (this.isMounted) {
-      this.emitAddress()
+      this.emitAddress(this.addressLocal)
       this.emitValid()
-      this.emitModified()
+
+      const isModified = BaseAddress.stringify(this.addressOriginal) !== BaseAddress.stringify(this.addressLocal)
+      this.emitModified(isModified)
     }
   }
 
@@ -354,7 +382,7 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
    *
    * @param object the object to stringify.
    *
-   * @returns a string that is the JSON representation of the object.
+   * @returns A string that is the JSON representation of the object.
    */
   private static stringify (object: object): string {
     return JSON.stringify(object, (name: string, val: any) : any => { return val !== '' ? val : undefined })
@@ -415,9 +443,13 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
    */
   private createAddressComplete (pca, key: string): object {
     // Set up the two fields that AddressComplete will use for input.
+    // Ref: https://www.canadapost.ca/pca/support/guides/advanced
+    // Note: Use special field for country, which user can't click, and which AC will overwrite
+    //       but that we don't care about.
+    //       (Option `populate: false` doesn't seem to work.)
     const fields = [
-      { element: 'street-address', mode: pca.fieldMode.DEFAULT },
-      { element: 'address-country', mode: pca.fieldMode.COUNTRY }
+      { element: 'street-address', mode: pca.fieldMode.SEARCH },
+      { element: 'address-country-pca', mode: pca.fieldMode.COUNTRY }
     ]
     const options = { key }
 

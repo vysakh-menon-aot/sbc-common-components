@@ -1,38 +1,37 @@
 import { Component, Vue } from 'vue-property-decorator'
 
 /**
- * Mixin that provides some useful schema validation utilities.
+ * Mixin that provides some useful validation utilities.
  */
 @Component
 export default class ValidationMixin extends Vue {
   /**
-   * Creates a Vuetify validation rules object from the Vuelidate state.
-   * @param value The name of the value we are validating.
-   * @returns A Vuetify validation rules object.
-   * @todo When required, extend this to handle nested objects.
+   * Creates a Vuetify rules object from the Vuelidate state.
+   * @param model The name of the model we are validating.
+   * @returns A Vuetify rules object.
    */
-  public createVuetifyRulesObject (value: string): { [attr: string]: Array<Function> } {
+  public createVuetifyRulesObject (model: string): { [attr: string]: Array<Function> } {
     let obj = {}
 
     // ensure Vuelidate state object is initialized
-    if (this.$v && this.$v[value]) {
+    if (this.$v && this.$v[model]) {
       // iterate over Vuelidate object properties
-      Object.keys(this.$v[value])
+      Object.keys(this.$v[model])
         // only look at validation properties
         .filter(prop => prop.charAt(0) !== '$')
         .forEach(prop => {
           // create array for each validation property
           obj[prop] = []
           // iterate over validation property params
-          Object.keys(this.$v[value][prop].$params)
+          Object.keys(this.$v[model][prop].$params)
             .forEach(param => {
               // add specified validation functions to array
               switch (param) {
-                case 'required': obj[prop].push(() => this.requiredRule(value, prop)); break
-                case 'minLength': obj[prop].push(() => this.minLengthRule(value, prop)); break
-                case 'maxLength': obj[prop].push(() => this.maxLengthRule(value, prop)); break
-                case 'isCanada': obj[prop].push(() => this.isCanadaRule(value, prop)); break
-                case 'isBC': obj[prop].push(() => this.isBCRule(value, prop)); break
+                case 'required': obj[prop].push(() => this.requiredRule(model, prop)); break
+                case 'minLength': obj[prop].push(() => this.minLengthRule(model, prop)); break
+                case 'maxLength': obj[prop].push(() => this.maxLengthRule(model, prop)); break
+                case 'isCanada': obj[prop].push(() => this.isCanadaRule(model, prop)); break
+                case 'isBC': obj[prop].push(() => this.isBCRule(model, prop)); break
                 // FUTURE: add extra validation functions here
                 default: break
               }
@@ -52,7 +51,7 @@ export default class ValidationMixin extends Vue {
   }
 
   /**
-   * Misc Vuetify validation rules.
+   * Misc Vuetify rules.
    * @param prop The name of the property object to validate.
    * @param key The name of the property key (field) to validate.
    * @returns True if the rule passes, otherwise an error string.
