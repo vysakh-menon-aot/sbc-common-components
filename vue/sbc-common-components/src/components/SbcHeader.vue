@@ -15,7 +15,8 @@
         <span class="brand__title">BC Registries <span class="brand__title--wrap">& Online Services</span></span>
       </a>
       <div class="app-header__actions">
-        <v-btn outlined color="#ffffff" v-if="authorized" @click="logout">Sign Out</v-btn>
+        <v-btn color="#fcba19" class="log-in-btn" v-if="!authorized" @click="login">Log in with my BC Services Card</v-btn>
+        <v-btn outlined class="log-out-btn" v-if="authorized" @click="logout">Log out</v-btn>
       </div>
     </div>
   </header>
@@ -47,13 +48,13 @@ export default Vue.extend({
 <style lang="scss" scoped>
   @import "../assets/scss/theme.scss";
 
-  .app-header{
+  .app-header {
     height: 70px;
     color: #fff;
     border-bottom: 3px solid $BCgovGold5;
     background-color: $BCgovBlue5;
 
-    .container{
+    .container {
       display: flex;
       align-items: center;
       height: 100%;
@@ -62,13 +63,12 @@ export default Vue.extend({
     }
   }
 
-  .app-header__actions{
+  .app-header__actions {
     margin-left: auto;
 
-    .v-btn{
+    .v-btn {
       margin-right: 0;
-      color: #ffffff;
-      border-color: #ffffff;
+      font-weight: 700;
     }
   }
 
@@ -80,31 +80,41 @@ export default Vue.extend({
     color: inherit;
   }
 
-  .brand__image{
+  .brand__image {
     display: block;
     margin-right: 1.5rem;
     margin-left: -0.1rem;
     max-height: 70px;
   }
 
-  .brand__title{
+  .brand__title {
     font-size: 1.125rem;
     font-weight: 400;
   }
 
-  @media (max-width: 600px){
+  @media (max-width: 600px) {
     .brand__image{
       margin-right: 0.75rem;
       margin-left: -0.15rem;
     }
 
-    .brand__title{
+    .brand__title {
       font-size: 1rem;
       line-height: 1.25rem;
     }
 
-    .brand__title--wrap{
+    .brand__title--wrap {
       display: block
     }
+  }
+
+  .log-in-btn {
+    color: $BCgovBlue5;
+    background-color: $BCgovGold4;
+  }
+
+  .log-out-btn {
+    color: $gray0;
+    border-color: $gray0;
   }
 </style>

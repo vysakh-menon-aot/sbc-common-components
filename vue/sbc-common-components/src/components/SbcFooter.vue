@@ -26,6 +26,7 @@ export default Vue.extend({
   @import "../assets/scss/theme.scss";
 
   .app-footer{
+    border-top: 3px solid $BCgovGold5;
     background-color: $BCgovBlue5;
     font-size: 0.9375rem;
   }
