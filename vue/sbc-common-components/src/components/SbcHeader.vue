@@ -16,7 +16,7 @@
       </a>
       <div class="app-header__actions">
         <v-btn color="#fcba19" class="log-in-btn" v-if="!authorized" @click="login">Log in with my BC Services Card</v-btn>
-        <v-btn outlined class="log-out-btn" v-if="authorized" @click="logout">Log out</v-btn>
+        <v-btn outlined color="#ffffff" class="log-out-btn" v-if="authorized" @click="logout">Log out</v-btn>
       </div>
     </div>
   </header>
@@ -40,6 +40,10 @@ export default Vue.extend({
   methods: {
     logout () {
       window.location.assign('/cooperatives/auth/signout')
+    },
+
+    login () {
+      window.location.assign('/cooperatives/auth/signin/bcsc')
     }
   }
 })
@@ -114,7 +118,6 @@ export default Vue.extend({
   }
 
   .log-out-btn {
-    color: $gray0;
-    border-color: $gray0;
+    border-color: #ffffff;
   }
 </style>
