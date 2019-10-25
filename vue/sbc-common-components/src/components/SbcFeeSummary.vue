@@ -66,7 +66,7 @@ export default {
   }),
 
   mounted () {
-    console.log('%c FeeMdoule-Data Recieved on Mount as %s %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData), this.payURL)
+    // console.log('%c FeeMdoule-Data Recieved on Mount as %s %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData), this.payURL)
     FeeServices.getFee(this.filingData, this.payURL).then(data => {
       this.fetchError = ''
       this.fees = data
@@ -76,16 +76,18 @@ export default {
   },
   computed: {
     totalFilingFees () :number {
-      if (!this.fees) {
-        console.log('%c FeeMdoule-Watch ZERO FEE %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData))
-        return 0
+      let totalFee = 0
+      if (this.fees) {
+        // console.log('%c FeeMdoule-Watch ZERO FEE %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData))
+        totalFee = this.fees.reduce((acc: number, item: { fee: number; }) => acc + item.fee, 0)
       }
-      return this.fees.reduce((acc: number, item: { fee: number; }) => acc + item.fee, 0)
+      this.$emit('total-fee', totalFee)
+      return totalFee
     }
   },
   watch: {
     filingData: function (newVal) {
-      console.log('%c FeeMdoule-Watch Activated as %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData))
+      // console.log('%c FeeMdoule-Watch Activated as %s', 'color: blue ;font-size : 12px', JSON.stringify(this.filingData))
       FeeServices.getFee(this.filingData, this.payURL).then((data: any) => {
         this.fetchError = ''
         this.fees = data
