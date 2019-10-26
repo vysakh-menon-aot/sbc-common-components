@@ -1,6 +1,7 @@
 # sbc-common-components
 
-[![npm version](https://badge.fury.io/js/sbc-common-components.svg)](https://badge.fury.io/js/sbc-common-components)
+
+[![npm:size:gzip](https://img.shields.io/bundlephobia/minzip/sbc-common-components.svg?label=npm:size:gzip)](https://bundlephobia.com/result?p=sbc-common-components)
 
 The common components for all vue projects in SBC can reside here
 
