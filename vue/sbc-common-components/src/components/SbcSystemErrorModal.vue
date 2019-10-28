@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { Vue, Component, Prop, Emit } from 'vue-property-decorator'
-import SbcSystemError from '@/components/SbcSystemError.vue'
+import SbcSystemError from '../components/SbcSystemError.vue'
 @Component({
   components: { SbcSystemError }
 })
@@ -34,40 +34,40 @@ export default class SbcSystemErrorModal extends Vue {
 <style lang="scss" scoped>
     @import '../assets/scss/theme.scss';
     @import '../assets/scss/overrides.scss';
-    article{
-        .v-card{
-            line-height: 1.2rem;
-            font-size: 0.875rem;
-        }
-    }
-    section p{
-        // font-size 0.875rem
-        color: $gray6;
-    }
-    section + section{
-        margin-top: 3rem;
-    }
-    h2{
-        margin-bottom: 0.25rem;
-    }
-    .title-container{
-        margin-bottom: 0.5rem;
-    }
-    #buttons-container{
-        padding-top: 2rem;
-        border-top: 1px solid $gray5;
-        .buttons-left{
-            width: 50%;
-        }
-        .buttons-right{
-            margin-left: auto;
-        }
-        .v-btn + .v-btn{
-            margin-left: 0.5rem;
-        }
-    }
-    .error-dialog-padding{
-        margin-left: 1rem;
-    }
 
+    article {
+      .v-card {
+        line-height: 1.2rem;
+        font-size: 0.875rem;
+      }
+    }
+    section p {
+      // font-size 0.875rem
+      color: $gray6;
+    }
+    section + section {
+      margin-top: 3rem;
+    }
+    h2 {
+      margin-bottom: 0.25rem;
+    }
+    .title-container {
+      margin-bottom: 0.5rem;
+    }
+    #buttons-container {
+      padding-top: 2rem;
+      border-top: 1px solid $gray5;
+      .buttons-left {
+        width: 50%;
+      }
+      .buttons-right {
+        margin-left: auto;
+      }
+      .v-btn + .v-btn {
+        margin-left: 0.5rem;
+      }
+    }
+    .error-dialog-padding {
+      margin-left: 1rem;
+    }
 </style>

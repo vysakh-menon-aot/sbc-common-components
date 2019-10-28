@@ -16,14 +16,14 @@
     <!-- Display fields -->
     <v-expand-transition>
       <div class="address-block"
-           v-show="!editing"
+          v-if="!editing"
       >
         <div class="address-block__info">
           <div class="address-block__info-row">
             {{ addressLocal.streetAddress }}
           </div>
-          <div class="address-block__info-row">
-            {{ addressLocal.streetAddressAdditional }}
+          <div class="address-block__info-row pre-wrap"
+            v-html="addressLocal.streetAddressAdditional">
           </div>
           <div class="address-block__info-row">
             <span>{{ addressLocal.addressCity }}</span>
@@ -31,7 +31,7 @@
             <span v-if="addressLocal.postalCode !== 'N/A'">&nbsp;&nbsp;{{ addressLocal.postalCode }}</span>
           </div>
           <div class="address-block__info-row">
-            {{ addressLocal.addressCountry }}
+            {{ getCountryName(addressCountry) }}
           </div>
           <div class="address-block__info-row"
                v-if="addressLocal.deliveryInstructions"
@@ -47,67 +47,89 @@
       <v-form lazy-validation
               name="address-form"
               ref="addressForm"
-              v-show="editing"
+              v-if="editing"
       >
         <div class="form__row">
           <v-text-field autocomplete="address-complete"
                         filled
-                        label="Street Address"
+                        :label="streetAddressLabel"
                         name="street-address"
                         v-model="addressLocal.streetAddress"
-                        :rules="streetRules"
+                        :rules="rules.streetAddress"
                         @click="enableAddressComplete"
-          ></v-text-field>
-        </div>
-        <div class="form__row">
-          <v-text-field filled
-                        label="Additional Street Address (Optional)"
-                        name="street-address-additional"
-                        v-model="addressLocal.streetAddressAdditional"
-          ></v-text-field>
-        </div>
-        <div class="form__row three-column">
-          <v-text-field filled
-                        class="item"
-                        label="City"
-                        name="address-city"
-                        required
-                        v-model="addressLocal.addressCity"
-                        :rules="cityRules"
-          ></v-text-field>
-          <v-select filled
-                    class="item"
-                    label="Province"
-                    name="address-region"
-                    v-model="addressLocal.addressRegion"
-                    :items="regions"
-                    :rules="regionRules"
-          ></v-select>
-          <v-text-field filled
-                        class="item"
-                        label="Postal Code"
-                        name="postal-code"
-                        required
-                        v-model="addressLocal.postalCode"
-                        :rules="postalCodeRules"
-          ></v-text-field>
-        </div>
-        <div class="form__row">
-          <v-text-field filled
-                        label="Country"
-                        name="address-country"
-                        required
-                        v-model="addressLocal.addressCountry"
-                        :rules="countryRules"
-          ></v-text-field>
+          />
         </div>
         <div class="form__row">
           <v-textarea auto-grow
                       filled
-                      label="Delivery Instructions (Optional)"
+                      :label="streetAddressAdditionalLabel"
+                      name="street-address-additional"
+                      rows="1"
+                      v-model="addressLocal.streetAddressAdditional"
+                      :rules="rules.streetAddressAdditional"
+          />
+        </div>
+        <div class="form__row three-column">
+          <v-text-field filled
+                        class="item"
+                        :label="addressCityLabel"
+                        name="address-city"
+                        v-model="addressLocal.addressCity"
+                        :rules="rules.addressCity"
+          />
+          <v-select v-if="useCountryRegions(addressCountry)"
+                    filled
+                    class="item"
+                    :menu-props="{maxHeight:'40rem'}"
+                    :label="addressRegionLabel"
+                    name="address-region"
+                    item-text="name"
+                    item-value="short"
+                    v-model="addressLocal.addressRegion"
+                    :items="getCountryRegions(addressCountry)"
+                    :rules="rules.addressRegion"
+                    :readonly="isSchemaBC()"
+          />
+          <v-text-field v-else
+                        filled
+                        class="item"
+                        :label="addressRegionLabel"
+                        name="address-region"
+                        v-model="addressLocal.addressRegion"
+                        :rules="rules.addressRegion"
+                        :readonly="isSchemaBC()"
+          />
+          <v-text-field filled
+                        class="item"
+                        :label="postalCodeLabel"
+                        name="postal-code"
+                        v-model="addressLocal.postalCode"
+                        :rules="rules.postalCode"
+          />
+        </div>
+        <div class="form__row">
+          <v-select filled
+                    :label="addressCountryLabel"
+                    name="address-country"
+                    menu-props="auto"
+                    item-text="name"
+                    item-value="code"
+                    v-model="addressLocal.addressCountry"
+                    :items="getCountries()"
+                    :rules="rules.addressCountry"
+                    :readonly="isSchemaCanada()"
+          />
+          <!-- special field to select PCA country, separate from our model field -->
+          <input type="hidden" name="address-country-pca" :value="addressCountry" />
+        </div>
+        <div class="form__row">
+          <v-textarea auto-grow
+                      filled
+                      :label="deliveryInstructionsLabel"
                       name="delivery-instructions"
                       rows="2"
                       v-model="addressLocal.deliveryInstructions"
+                      :rules="rules.deliveryInstructions"
           />
         </div>
       </v-form>
@@ -118,36 +140,32 @@
 <script lang="ts">
 
 import Vue from 'vue'
-import { Component, Emit, Prop, Watch } from 'vue-property-decorator'
-import { validationMixin } from 'vuelidate'
 import { required } from 'vuelidate/lib/validators'
+import { Component, Mixins, Emit, Prop, Watch } from 'vue-property-decorator'
+import { Validation } from 'vue-plugin-helper-decorator'
+import set from 'lodash.set'
+import unset from 'lodash.unset'
+import ValidationMixin from '../mixins/validation-mixin'
+import CountriesProvincesMixin from '../mixins/countries-provinces-mixin'
 
 /**
  * The component for displaying and editing an address.
+ * Vuelidate is used to implement the validation rules (eg, what 'required' means and whether it's satisfied).
+ * Vuetify is used to display any validation errors/styling.
  */
 @Component({
-  mixins: [validationMixin],
-  validations: {
-    address: {
-      streetAddress: {
-        required
-      },
-      addressCity: {
-        required
-      },
-      addressRegion: {
-        required
-      },
-      postalCode: {
-        required
-      },
-      addressCountry: {
-        required
-      }
-    }
-  }
+  mixins: [ValidationMixin, CountriesProvincesMixin]
 })
-export default class BaseAddress extends Vue {
+export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvincesMixin) {
+  /**
+   * The validation object used by Vuelidate to compute address model validity.
+   * @returns The Vuelidate validations object.
+   */
+  @Validation()
+  public validations (): any {
+    return { addressLocal: { ...this.schemaLocal } }
+  }
+
   /**
    * Contains the address (if any) to be edited.
    */
@@ -159,34 +177,115 @@ export default class BaseAddress extends Vue {
   @Prop({ default: false }) readonly editing: boolean
 
   /**
-   * A local copy of the address object, to contain the fields edited by the component.
+   * The address schema containing Vuelidate rules.
+   */
+  @Prop({ default: null }) readonly schema: any
+
+  /**
+   * A local (working) copy of the address, to contain the fields edited by the component (ie, the model).
    */
   private addressLocal: object = { ...this.address }
 
   /**
-   * A copy of the address that the component was originally created with. This is used to determine whether or not the
-   * address has been edited by the user.
+   * A copy of the address that the component was originally created with. This is used to determine whether or not
+   * the address has been edited by the user.
    */
   private addressOriginal: object = { ...this.address }
 
   /**
-   * Has this component been mounted yet? Initially unset, but will be set by the {@link mounted} lifecycle callback.
+   * A local (working) copy of the address schema.
    */
-  private isMounted: boolean
+  // TODO: this misses the initial country setting (re: on edit)
+  private schemaLocal: any = { ...this.schema }
 
   /**
-   * The provinces for the address region drop-down list.
+   * Has this component been mounted yet? Initially unset, but will be set by the {@link mounted} lifecycle callback.
    */
-  private readonly regions: string[] = [
-    'BC', 'AB', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT', '--'
-  ]
+  private isMounted: boolean = false
 
-  // TODO: Convert from Vuetify validation to Vuelidate using JSON Schema - temporarily using Vuetify for display.
-  private readonly streetRules = [ v => !!v || 'A street address is required' ]
-  private readonly cityRules = [ v => !!v || 'A city is required' ]
-  private readonly regionRules = [ v => !!v || 'A province is required' ]
-  private readonly postalCodeRules = [ v => !!v || 'A postal code is required' ]
-  private readonly countryRules = [ v => !!v || 'A country is required' ]
+  /**
+   * Getter for Address Country, to simplify template and so we can watch it below.
+   */
+  private get addressCountry (): string {
+    return this.addressLocal['addressCountry']
+  }
+
+  /**
+   * Getters for labels.
+   * @returns The labels with 'optional' as needed.
+   */
+  private get streetAddressAdditionalLabel (): string {
+    return 'Additional Street Address' + (this.isSchemaRequired('streetAddressAdditional') ? '' : ' (Optional)')
+  }
+
+  private get streetAddressLabel (): string {
+    return 'Street Address' + (this.isSchemaRequired('streetAddress') ? '' : ' (Optional)')
+  }
+
+  private get addressCityLabel (): string {
+    return 'City' + (this.isSchemaRequired('addressCity') ? '' : ' (Optional)')
+  }
+
+  private get addressRegionLabel (): string {
+    let label: string
+    let required = this.isSchemaRequired('addressRegion')
+
+    // NB: make region required for Canada and USA
+    if (this.addressLocal['addressCountry'] === 'CA') {
+      label = 'Province'
+      required = true
+    } else if (this.addressLocal['addressCountry'] === 'US') {
+      label = 'State'
+      required = true
+    } else {
+      label = 'Province/State'
+    }
+
+    return label + (required ? '' : ' (Optional)')
+  }
+
+  private get postalCodeLabel (): string {
+    let label: string
+    if (this.addressLocal['addressCountry'] === 'US') {
+      label = 'Zip Code'
+    } else {
+      label = 'Postal Code'
+    }
+    return label + (this.isSchemaRequired('postalCode') ? '' : ' (Optional)')
+  }
+
+  private get addressCountryLabel (): string {
+    return 'Country' + (this.isSchemaRequired('addressCountry') ? '' : ' (Optional)')
+  }
+
+  private get deliveryInstructionsLabel (): string {
+    return 'Delivery Instructions' + (this.isSchemaRequired('deliveryInstructions') ? '' : ' (Optional)')
+  }
+
+  /**
+   * Helpers to check schema validations.
+   * @returns Whether the subject schema validation is present.
+   */
+  private isSchemaRequired (prop: string): boolean {
+    return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].required)
+  }
+
+  private isSchemaCanada (prop: string = 'addressCountry'): boolean {
+    return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].isCanada)
+  }
+
+  private isSchemaBC (prop: string = 'addressRegion'): boolean {
+    return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].isBC)
+  }
+
+  /**
+   * Getter for Vuetify rules object. Used to display any validation errors/styling.
+   * @remark As a getter, this is initialized between created() and mounted().
+   * @returns The Vuetify validation rules object.
+   */
+  private get rules (): { [attr: string]: Array<Function> } {
+    return this.createVuetifyRulesObject('addressLocal')
+  }
 
   /**
    * Lifecycle callback to convert the address JSON into an object, so that it can be used by the template.
@@ -206,18 +305,13 @@ export default class BaseAddress extends Vue {
 
   /**
    * Emits an update message for the {@link address} property, so that the caller can ".sync" with it.
-   *
-   * @returns the {@link addressLocal} object.
    */
   @Emit('update:address')
-  private emitAddress (): object {
-    return this.addressLocal
-  }
+  private emitAddress (val: object): void { }
 
   /**
-   * Emits the validity state of the address entered by the user.
-   *
-   * @returns a boolean that is true if the address if valid, false otherwise.
+   * Emits the Vuelidate state of the address entered by the user.
+   * @returns A boolean that is True if the address if valid, or False otherwise.
    */
   @Emit('valid')
   private emitValid (): boolean {
@@ -225,14 +319,10 @@ export default class BaseAddress extends Vue {
   }
 
   /**
-   * Emits the modified state of the address.
-   *
-   * @returns a boolean that is true if the address has been modified, false otherwise.
+   * Emits True if the address is modified, or False otherwise.
    */
   @Emit('modified')
-  private emitModified (): boolean {
-    return BaseAddress.stringify(this.addressOriginal) !== BaseAddress.stringify(this.addressLocal)
-  }
+  private emitModified (val: boolean): void { }
 
   /**
    * Watches changes to the address object, so that if the parent changes the data, then the object copy of it that
@@ -244,16 +334,47 @@ export default class BaseAddress extends Vue {
   }
 
   /**
+   * Watches changes to the Address Country and updates the schema accordingly.
+   */
+  @Watch('addressCountry')
+  private onAddressCountryChanged (): void {
+    // skip this if component is called without a schema (eg, display mode)
+    if (this.schema) {
+      // NB: Vue does not detect property addition or deletion, so re-assign the local schema.
+      // Ref: https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+      const addressRegion = { ...this.schema.addressRegion }
+      // if we are using a region list for the current country then make region a required field
+      if (this.useCountryRegions(this.addressLocal['addressCountry'])) {
+        set(addressRegion, 'required', required)
+      } else {
+        unset(addressRegion, 'required')
+      }
+      this.schemaLocal = { ...this.schema, addressRegion }
+    }
+  }
+
+  /**
    * Watches changes to the addressLocal object, to catch any changes to the fields within the address. Will notify the
    * parent object with the new address and whether or not the address is valid.
    */
   @Watch('addressLocal', { deep: true, immediate: true })
   private onAddressLocalChanged (): void {
     if (this.isMounted) {
-      this.emitAddress()
+      this.emitAddress(this.addressLocal)
       this.emitValid()
-      this.emitModified()
+
+      const isModified = BaseAddress.stringify(this.addressOriginal) !== BaseAddress.stringify(this.addressLocal)
+      this.emitModified(isModified)
     }
+  }
+
+  /**
+   * Function to determine whether to use a country's known regions (ie, provinces/states).
+   * @param code The short code of the country.
+   * @returns Whether to use v-select or v-text-field for input.
+   */
+  private useCountryRegions (code: string): boolean {
+    return (code === 'CA' || code === 'US')
   }
 
   /**
@@ -261,7 +382,7 @@ export default class BaseAddress extends Vue {
    *
    * @param object the object to stringify.
    *
-   * @returns a string that is the JSON representation of the object.
+   * @returns A string that is the JSON representation of the object.
    */
   private static stringify (object: object): string {
     return JSON.stringify(object, (name: string, val: any) : any => { return val !== '' ? val : undefined })
@@ -285,12 +406,10 @@ export default class BaseAddress extends Vue {
     this.moveElementId('street-address')
     this.moveElementId('address-country')
 
-    // Destroy the old one if it exists, and create the new.
-
+    // Destroy the old object if it exists, and create a new one.
     if (window['currentAddressComplete']) {
       window['currentAddressComplete'].destroy()
     }
-
     window['currentAddressComplete'] = this.createAddressComplete(pca, key)
   }
 
@@ -324,16 +443,17 @@ export default class BaseAddress extends Vue {
    */
   private createAddressComplete (pca, key: string): object {
     // Set up the two fields that AddressComplete will use for input.
-    const addressFields = [
+    // Ref: https://www.canadapost.ca/pca/support/guides/advanced
+    // Note: Use special field for country, which user can't click, and which AC will overwrite
+    //       but that we don't care about.
+    //       (Option `populate: false` doesn't seem to work.)
+    const fields = [
       { element: 'street-address', mode: pca.fieldMode.SEARCH },
-      { element: 'address-country', mode: pca.fieldMode.COUNTRY }
+      { element: 'address-country-pca', mode: pca.fieldMode.COUNTRY }
     ]
+    const options = { key }
 
-    const options = {
-      key: key
-    }
-
-    const addressComplete = new pca.Address(addressFields, options)
+    const addressComplete = new pca.Address(fields, options)
 
     // The documentation contains sample load/populate callback code that doesn't work, but this will. The side effect
     // is that it breaks the autofill functionality provided by the library, but we really don't want the library
@@ -344,74 +464,80 @@ export default class BaseAddress extends Vue {
   }
 
   /**
-   * Updates the address data after the user chooses a suggested address.
+   * Callback to update the address data after the user chooses a suggested address.
    *
    * @param address the data object returned by the AddressComplete Retrieve API.
    */
   private addressCompletePopulate (address: object): void {
     this.addressLocal['streetAddress'] = address['Line1']
-    this.addressLocal['streetAddressAdditional'] = address['Line2']
+    // Combine extra address lines into Street Address Additional field.
+    this.addressLocal['streetAddressAdditional'] = this.combineLines(
+      this.combineLines(address['Line2'], address['Line3']),
+      this.combineLines(address['Line4'], address['Line5'])
+    )
     this.addressLocal['addressCity'] = address['City']
+    if (this.useCountryRegions(address['CountryIso2'])) {
+      // In this case, v-select will map known province code to province name
+      // or v-select will be blank and user will have to select a known item.
+      this.addressLocal['addressRegion'] = address['ProvinceCode']
+    } else {
+      // In this case, v-text-input will allow manual entry but province info is probably too long
+      // so set region to null and add province name to the Street Address Additional field.
+      // If length is excessive, user will have to fix it.
+      this.addressLocal['addressRegion'] = null
+      this.addressLocal['streetAddressAdditional'] = this.combineLines(
+        this.addressLocal['streetAddressAdditional'], address['ProvinceName']
+      )
+    }
+    this.addressLocal['postalCode'] = address['PostalCode']
     this.addressLocal['addressCountry'] = address['CountryIso2']
 
-    if (address['CountryIso2'] === 'CA') {
-      this.addressLocal['addressRegion'] = address['ProvinceCode']
-      this.addressLocal['postalCode'] = address['PostalCode']
-    } else {
-      // Not proud of this, but it'll do until we implement JSON Schema validation.
-      this.addressLocal['addressRegion'] = '--'
-      this.addressLocal['postalCode'] = address['PostalCode'] ? address['PostalCode'] : 'N/A'
-    }
+    // Validate the form, in case any fields are missing or incorrect.
+    Vue.nextTick(() => { (this.$refs.addressForm as any).validate() })
+  }
+
+  private combineLines (line1: string, line2: string) {
+    if (!line1) return line2
+    if (!line2) return line1
+    return line1 + '\n' + line2
   }
 }
 
 </script>
 
-<style scoped lang="scss">
-
+<style lang="scss" scoped>
   @import "../../src/assets/scss/theme.scss";
 
-  .meta-container{
+  .meta-container {
     display: flex;
     flex-flow: column nowrap;
     position: relative;
   }
 
-  .validationError{
-    border-color: red;
-    border-radius: .3rem;
-    border-style: groove;
-    border-width: thin;
-  }
-
-  .validationErrorInfo{
-    color: red;
-  }
-
-  @media (min-width: 768px){
-    .meta-container{
-      flex-flow: row nowrap
+  @media (min-width: 768px) {
+    .meta-container {
+      flex-flow: row nowrap;
     }
   }
 
   // Address Block Layout
-  .address-block{
+  .address-block {
     display: flex;
   }
 
-  .address-block__info{
+  .address-block__info {
     flex: 1 1 auto;
   }
 
   // Form Row Elements
-  .form__row.three-column{
+  .form__row.three-column {
     align-items: stretch;
     display: flex;
     flex-flow: row nowrap;
     margin-left: -0.5rem;
     margin-right: -0.5rem;
 
-    .item{
+    .item {
       flex: 1 1 auto;
       flex-basis: 0;
       margin-left: 0.5rem;
@@ -419,4 +545,7 @@ export default class BaseAddress extends Vue {
     }
   }
 
+  .pre-wrap {
+    white-space: pre-wrap;
+  }
 </style>

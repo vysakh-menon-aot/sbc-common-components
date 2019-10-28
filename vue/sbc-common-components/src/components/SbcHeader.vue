@@ -126,7 +126,7 @@ export default class SbcHeader extends Vue {
   }
 
   @media (max-width: 600px) {
-    .brand__image{
+    .brand__image {
       margin-right: 0.75rem;
       margin-left: -0.15rem;
     }
@@ -137,7 +137,7 @@ export default class SbcHeader extends Vue {
     }
 
     .brand__title--wrap {
-      display: block
+      display: block;
     }
   }
 
