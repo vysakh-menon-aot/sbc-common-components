@@ -15,38 +15,76 @@
         <span class="brand__title">BC Registries <span class="brand__title--wrap">& Online Services</span></span>
       </a>
       <div class="app-header__actions">
-        <v-btn color="#fcba19" class="log-in-btn" v-if="!authorized" @click="login">Log in with my BC Services Card</v-btn>
-        <v-btn outlined color="#ffffff" class="log-out-btn" v-if="authorized" @click="logout">Log out</v-btn>
+        <v-btn color="#fcba19" class="log-in-btn" v-if="showLogin && !authorized" @click="login">Log in with BC Services Card</v-btn>
+        <v-menu size="sm" v-if="showLogin && authorized"
+          v-model="value"
+          :disabled="disabled"
+          :absolute="absolute"
+          :open-on-hover="openOnHover"
+          :close-on-click="closeOnClick"
+          :close-on-content-click="closeOnContentClick"
+          :offset-x="offsetX"
+          :offset-y="offsetY"
+        >
+          <template v-slot:activator="{ on }">
+            <v-btn text color="#fff" v-on="on"
+            >
+              {{ username }}
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="goToUserProfile">
+              <v-list-item-title>Edit Contact Information</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
+        <v-btn outlined color="#ffffff" class="log-out-btn ml-1" v-if="authorized" @click="logout">Log out</v-btn>
       </div>
     </div>
   </header>
 </template>
 
 <script lang="ts">
+import { Component, Prop } from 'vue-property-decorator'
 import Vue from 'vue'
-import AuthService from '../services/auth.services'
 
-export default Vue.extend({
-  name: 'sbc-header',
-  props: {
-    authURL: String
-  },
-  computed: {
-    authorized ():boolean {
-      let auth = sessionStorage.getItem('KEYCLOAK_TOKEN')
-      return !!auth
-    }
-  },
-  methods: {
-    logout () {
-      window.location.assign('/cooperatives/auth/signout')
-    },
-
-    login () {
-      window.location.assign('/cooperatives/auth/signin/bcsc')
-    }
+@Component({})
+export default class SbcHeader extends Vue {
+  get username () : string {
+    return sessionStorage.getItem('USER_FULL_NAME')
   }
-})
+
+  get authorized () : boolean {
+    let auth = sessionStorage.getItem('KEYCLOAK_TOKEN')
+    return !!auth
+  }
+
+  get showLogin () : boolean {
+    let featureHide: any
+    const authApiConfig = JSON.parse(sessionStorage.getItem('AUTH_API_CONFIG'))
+
+    if (authApiConfig) {
+      featureHide = authApiConfig['VUE_APP_FEATURE_HIDE']
+    }
+    if (featureHide && featureHide.BCSC) {
+      return false
+    }
+    return true
+  }
+
+  logout () {
+    window.location.assign('/cooperatives/auth/signout')
+  }
+
+  login () {
+    window.location.assign('/cooperatives/auth/signin/bcsc')
+  }
+
+  goToUserProfile () {
+    window.location.assign('/cooperatives/auth/userprofile')
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -80,7 +118,7 @@ export default Vue.extend({
     display: flex;
     align-items: center;
     padding-right: 1rem;
-    text-decoration: none ;
+    text-decoration: none;
     color: inherit;
   }
 

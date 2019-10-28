@@ -31,18 +31,18 @@ export default Vue.extend({
     font-size: 0.9375rem;
   }
 
-  nav{
-    ul{
+  nav {
+    ul {
       margin: -0.5rem;
       padding: 0;
-      list-style-type: none
+      list-style-type: none;
     }
 
-    li{
+    li {
       display: inline-block;
       margin-right: 0.25rem;
 
-      a{
+      a {
         display: block;
         padding: 0.25rem 0.5rem;
         color: #fff;
@@ -53,20 +53,20 @@ export default Vue.extend({
         }
       }
     }
-    li:last-child{
+    li:last-child {
       margin-right: 0;
-      border-right: none
+      border-right: none;
     }
   }
-  @media (min-width: 960px){
-    nav{
+  @media (min-width: 960px) {
+    nav {
       li {
         margin-right: 0.5rem;
         padding-right: 0.5rem;
         border-right: 1px solid $BCgovBlue3;
 
         a {
-          padding: 0.25rem 0.5rem
+          padding: 0.25rem 0.5rem;
         }
       }
     }

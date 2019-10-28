@@ -31,7 +31,7 @@ export default class SbcSystemBanner extends Vue {
         border-radius: 0;
     }
 
-    .v-alert >>> .v-alert__wrapper {
+    .v-alert ::v-deep .v-alert__wrapper {
         margin: 0 auto;
         padding: 1.25rem 1.5rem;
         max-width: 1200px;
