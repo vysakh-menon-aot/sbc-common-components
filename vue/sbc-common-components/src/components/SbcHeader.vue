@@ -16,9 +16,7 @@
       </a>
       <div class="app-header__actions">
         <v-btn color="#fcba19" class="log-in-btn" v-if="showLogin && !authorized" @click="login">Log in with BC Services Card</v-btn>
-        <v-menu size="sm" v-if="showLogin && authorized"
-          v-model="value"
-        >
+        <v-menu size="sm" v-if="showLogin && authorized">
           <template v-slot:activator="{ on }">
             <v-btn text color="#fff" v-on="on"
             >
