@@ -10,7 +10,7 @@ import Vue from 'vue'
 import '../plugins/vuetify'
 import { Component, Prop } from 'vue-property-decorator'
 
-@Component
+@Component({})
 export default class SbcSystemBanner extends Vue {
     @Prop({ default: '' }) message: string
     @Prop({ default: 'info' }) type: string // Accepted values are 'info', 'warning', 'danger', 'success',

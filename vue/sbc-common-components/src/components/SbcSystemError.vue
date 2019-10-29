@@ -25,7 +25,7 @@
 <script lang="ts">
 import { Vue, Component, Prop, Emit } from 'vue-property-decorator'
 
-@Component
+@Component({})
 export default class SbcSystemError extends Vue {
     @Prop() title: String
     @Prop() readonly description: string

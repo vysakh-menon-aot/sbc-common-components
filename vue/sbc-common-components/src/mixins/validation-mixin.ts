@@ -3,7 +3,7 @@ import { Component, Vue } from 'vue-property-decorator'
 /**
  * Mixin that provides some useful validation utilities.
  */
-@Component
+@Component({})
 export default class ValidationMixin extends Vue {
   /**
    * Creates a Vuetify rules object from the Vuelidate state.
