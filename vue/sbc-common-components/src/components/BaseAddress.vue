@@ -138,7 +138,6 @@
 </template>
 
 <script lang="ts">
-
 import Vue from 'vue'
 import { required } from 'vuelidate/lib/validators'
 import { Component, Mixins, Emit, Prop, Watch } from 'vue-property-decorator'
@@ -168,18 +167,32 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
 
   /**
    * Contains the address (if any) to be edited.
+   * Default is "empty address" in case parent doesn't provide it (eg, for new address).
    */
-  @Prop({ default: () => {} }) readonly address: object
+  @Prop({
+    default: () => ({
+      streetAddress: '',
+      streetAddressAdditional: '',
+      addressCity: '',
+      addressRegion: '',
+      postalCode: '',
+      addressCountry: '',
+      deliveryInstructions: ''
+    })
+  })
+  readonly address: object
 
   /**
    * Indicates whether the address should be shown in editing mode (true) or display mode (false).
    */
-  @Prop({ default: false }) readonly editing: boolean
+  @Prop({ default: false })
+  readonly editing: boolean
 
   /**
    * The address schema containing Vuelidate rules.
    */
-  @Prop({ default: null }) readonly schema: any
+  @Prop({ default: null })
+  readonly schema: any
 
   /**
    * A local (working) copy of the address, to contain the fields edited by the component (ie, the model).
@@ -502,50 +515,49 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
     return line1 + '\n' + line2
   }
 }
-
 </script>
 
 <style lang="scss" scoped>
-  @import "../../src/assets/scss/theme.scss";
+@import "../../src/assets/scss/theme.scss";
 
+.meta-container {
+  display: flex;
+  flex-flow: column nowrap;
+  position: relative;
+}
+
+@media (min-width: 768px) {
   .meta-container {
-    display: flex;
-    flex-flow: column nowrap;
-    position: relative;
-  }
-
-  @media (min-width: 768px) {
-    .meta-container {
-      flex-flow: row nowrap;
-    }
-  }
-
-  // Address Block Layout
-  .address-block {
-    display: flex;
-  }
-
-  .address-block__info {
-    flex: 1 1 auto;
-  }
-
-  // Form Row Elements
-  .form__row.three-column {
-    align-items: stretch;
-    display: flex;
     flex-flow: row nowrap;
-    margin-left: -0.5rem;
-    margin-right: -0.5rem;
-
-    .item {
-      flex: 1 1 auto;
-      flex-basis: 0;
-      margin-left: 0.5rem;
-      margin-right: 0.5rem;
-    }
   }
+}
 
-  .pre-wrap {
-    white-space: pre-wrap;
+// Address Block Layout
+.address-block {
+  display: flex;
+}
+
+.address-block__info {
+  flex: 1 1 auto;
+}
+
+// Form Row Elements
+.form__row.three-column {
+  align-items: stretch;
+  display: flex;
+  flex-flow: row nowrap;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+
+  .item {
+    flex: 1 1 auto;
+    flex-basis: 0;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
   }
+}
+
+.pre-wrap {
+  white-space: pre-wrap;
+}
 </style>
