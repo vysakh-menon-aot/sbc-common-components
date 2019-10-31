@@ -16,14 +16,15 @@
       </a>
       <div class="app-header__actions">
         <v-btn color="#fcba19" class="log-in-btn" v-if="showLogin && !authorized" @click="login">Log in with BC Services Card</v-btn>
-        <v-menu size="sm" v-if="showLogin && authorized">
+        <v-menu offset-y v-if="showLogin && authorized">
           <template v-slot:activator="{ on }">
-            <v-btn text color="#fff" v-on="on"
-            >
-              {{ username }}
+            <v-btn text v-on="on" class="user-account-btn">
+              <v-icon size="sm" class="user-account-btn__icon">account_circle</v-icon>
+              &nbsp;{{ username }}&nbsp;
+              <v-icon>arrow_drop_down</v-icon>
             </v-btn>
           </template>
-          <v-list>
+          <v-list class="pt-0 pb-0">
             <v-list-item @click="goToUserProfile">
               <v-list-item-title>Edit Contact Information</v-list-item-title>
             </v-list-item>
@@ -81,9 +82,11 @@ export default class SbcHeader extends Vue {
 <style lang="scss" scoped>
   @import "../assets/scss/theme.scss";
 
+  $app-header-font-color: #ffffff;
+
   .app-header {
     height: 70px;
-    color: #fff;
+    color: $app-header-font-color;
     border-bottom: 3px solid $BCgovGold5;
     background-color: $BCgovBlue5;
 
@@ -147,6 +150,10 @@ export default class SbcHeader extends Vue {
   }
 
   .log-out-btn {
-    border-color: #ffffff;
+    border-color: $app-header-font-color;
+  }
+
+  .v-btn.user-account-btn {
+    color: $app-header-font-color;
   }
 </style>
