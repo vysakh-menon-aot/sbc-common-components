@@ -21,6 +21,9 @@ import BaseAddress from '@/components/BaseAddress.vue'
 
 Vue.use(Vuetify)
 Vue.use(Vuelidate)
+// suppress "avoid mutating a prop directly" warnings
+// https://vue-test-utils.vuejs.org/api/config.html#silent
+Vue.config.silent = true
 
 let vuetify = new Vuetify({})
 
@@ -89,7 +92,11 @@ function createComponent (
   editing: boolean = true,
   schema: object = { ...basicSchema })
 : Wrapper<BaseAddress> {
-  return mount(BaseAddress, { propsData: { address, editing, schema }, vuetify })
+  return mount(BaseAddress, {
+    // sync: false, // fixes some warnings but causes some tests to fail - revise this later
+    propsData: { address, editing, schema },
+    vuetify
+  })
 }
 
 describe('BaseAddress - base tests', () => {
