@@ -1,3 +1,5 @@
+import 'core-js/stable' // to polyfill ECMAScript features
+import 'regenerator-runtime/runtime' // to use transpiled generator functions
 import Vue from 'vue'
 import Vuelidate from 'vuelidate'
 import Vue2Filters from 'vue2-filters'
