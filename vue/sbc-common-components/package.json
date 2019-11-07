@@ -19,7 +19,6 @@
     "docs:build": "vuepress build docs"
   },
   "dependencies": {
-    "@types/vuelidate": "^0.7.4",
     "axios": "^0.18.0",
     "core-js": "^3.1.4",
     "country-list": "^2.2.0",
@@ -29,9 +28,6 @@
     "provinces": "^1.11.0",
     "regenerator-runtime": "^0.13.3",
     "vue": "^2.6.10",
-    "vue-class-component": "^7.1.0",
-    "vue-plugin-helper-decorator": "^0.0.11",
-    "vue-property-decorator": "^8.2.2",
     "vue-router": "^3.0.3",
     "vue2-filters": "^0.7.1",
     "vuelidate": "^0.7.4",
@@ -40,6 +36,7 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.18",
+    "@types/vuelidate": "^0.7.4",
     "@typescript-eslint/eslint-plugin": "^2.3.1",
     "@typescript-eslint/parser": "^2.3.1",
     "@vue/cli-plugin-babel": "4.0.0-rc.0",
@@ -60,6 +57,9 @@
     "sass-loader": "^7.2.0",
     "ts-jest": "^24.0.2",
     "typescript": "<3.6.0",
+    "vue-class-component": "^7.1.0",
+    "vue-plugin-helper-decorator": "^0.0.11",
+    "vue-property-decorator": "^8.2.2",
     "vue-template-compiler": "^2.6.10",
     "vuepress": "^0.14.11"
   },
