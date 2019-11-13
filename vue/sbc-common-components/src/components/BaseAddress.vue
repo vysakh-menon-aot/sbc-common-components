@@ -518,7 +518,7 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
 </script>
 
 <style lang="scss" scoped>
-@import "../../src/assets/scss/theme.scss";
+@import "../assets/scss/theme.scss";
 
 .meta-container {
   display: flex;
@@ -559,5 +559,28 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
 
 .pre-wrap {
   white-space: pre-wrap;
+}
+
+// make 'readonly' inputs looks disabled
+// (can't use 'disabled' because we want normal error styling)
+.v-select.v-input--is-readonly,
+.v-text-field.v-input--is-readonly {
+  pointer-events: none;
+
+  ::v-deep .v-label {
+    // set label colour to same as disabled
+    color: rgba(0,0,0,.38);
+  }
+
+  ::v-deep .v-select__selection {
+    // set selection colour to same as disabled
+    color: rgba(0,0,0,.38);
+  }
+
+  ::v-deep .v-icon {
+    // set error icon colour to same as disabled
+    color: rgba(0,0,0,.38) !important;
+    opacity: 0.6;
+  }
 }
 </style>
