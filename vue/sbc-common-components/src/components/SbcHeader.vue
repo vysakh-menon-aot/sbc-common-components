@@ -54,7 +54,7 @@ import Vue from 'vue'
 @Component({})
 export default class SbcHeader extends Vue {
   get username () : string {
-    return sessionStorage.getItem('USER_FULL_NAME')
+    return sessionStorage.getItem('USER_FULL_NAME') || '-'
   }
 
   get authorized () : boolean {
@@ -75,10 +75,6 @@ export default class SbcHeader extends Vue {
     return true
   }
 
-  showUserInitial () {
-
-  }
-
   logout () {
     window.location.assign('/cooperatives/auth/signout')
   }
@@ -94,114 +90,114 @@ export default class SbcHeader extends Vue {
 </script>
 
 <style lang="scss" scoped>
-  @import "../assets/scss/theme.scss";
+@import "../assets/scss/theme.scss";
 
-  $app-header-font-color: #ffffff;
+$app-header-font-color: #ffffff;
 
-  .app-header {
-    height: 70px;
-    color: $app-header-font-color;
-    border-bottom: 3px solid $BCgovGold5;
-    background-color: $BCgovBlue5;
+.app-header {
+  height: 70px;
+  color: $app-header-font-color;
+  border-bottom: 3px solid $BCgovGold5;
+  background-color: $BCgovBlue5;
 
-    .container {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      padding-top: 0;
-      padding-bottom: 0;
-    }
-  }
-
-  .app-header__actions {
-    margin-left: auto;
-
-    .v-btn {
-      margin-right: 0;
-    }
-  }
-
-  .brand {
+  .container {
     display: flex;
     align-items: center;
-    padding-right: 1rem;
-    text-decoration: none;
-    color: inherit;
+    height: 100%;
+    padding-top: 0;
+    padding-bottom: 0;
   }
+}
 
+.app-header__actions {
+  margin-left: auto;
+
+  .v-btn {
+    margin-right: 0;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  padding-right: 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand__image {
+  display: block;
+  margin-right: 1.25rem;
+  max-height: 70px;
+}
+
+.brand__title {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
   .brand__image {
-    display: block;
-    margin-right: 1.25rem;
-    max-height: 70px;
+    margin-right: 0.75rem;
+    margin-left: -0.15rem;
   }
 
   .brand__title {
     font-size: 1rem;
-    font-weight: 700;
+    line-height: 1.25rem;
   }
 
-  @media (max-width: 600px) {
-    .brand__image {
-      margin-right: 0.75rem;
-      margin-left: -0.15rem;
-    }
-
-    .brand__title {
-      font-size: 1rem;
-      line-height: 1.25rem;
-    }
-
-    .brand__title--wrap {
-      display: block;
-    }
+  .brand__title--wrap {
+    display: block;
   }
+}
 
-  .log-in-btn {
-    color: $BCgovBlue5;
-    background-color: $BCgovGold4;
-    font-weight: 700;
-  }
+.log-in-btn {
+  color: $BCgovBlue5;
+  background-color: $BCgovGold4;
+  font-weight: 700;
+}
 
-  .log-out-btn {
-    border-color: $app-header-font-color;
-  }
+.log-out-btn {
+  border-color: $app-header-font-color;
+}
 
-  .user-account-menu .v-list {
-    min-width: 10rem;
-    font-size: 0.875rem;
-  }
+.user-account-menu .v-list {
+  min-width: 10rem;
+  font-size: 0.875rem;
+}
 
-  .v-btn.user-account-btn {
-    color: $app-header-font-color;
-  }
+.v-btn.user-account-btn {
+  color: $app-header-font-color;
+}
 
-  .v-avatar {
-    color: #ffffff;
-    font-weight: 700;
-  }
+.v-avatar {
+  color: #ffffff;
+  font-weight: 700;
+}
 
-  .user-account-btn__avatar {
-    margin-right: 0.25rem;
-  }
+.user-account-btn__avatar {
+  margin-right: 0.25rem;
+}
 
-  .user-account-btn__menu-icon {
-    margin-right: -0.5rem;
-  }
+.user-account-btn__menu-icon {
+  margin-right: -0.5rem;
+}
 
-  @media (max-width: 960px) {
-    .user-account-btn__user-name {
-      display: none;
-    }
+@media (max-width: 960px) {
+  .user-account-btn__user-name {
+    display: none;
   }
+}
 
-  .user-detail {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-  }
+.user-detail {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
 
-  .user-detail__avatar {
-    margin-right: 0.5rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-  }
+.user-detail__avatar {
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
 </style>
