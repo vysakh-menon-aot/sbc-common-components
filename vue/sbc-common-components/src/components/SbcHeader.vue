@@ -16,22 +16,32 @@
       </a>
       <div class="app-header__actions">
         <v-btn color="#fcba19" class="log-in-btn" v-if="showLogin && !authorized" @click="login">Log in with BC Services Card</v-btn>
-        <v-menu offset-y v-if="showLogin && authorized">
-          <template v-slot:activator="{ on }">
-            <v-btn text v-on="on" class="user-account-btn">
-              <v-icon size="sm" class="user-account-btn__icon">account_circle</v-icon>
-              &nbsp;{{ username }}&nbsp;
-              <v-icon>arrow_drop_down</v-icon>
-            </v-btn>
-          </template>
+        <v-menu bottom left fixed transition="slide-y-transition" content-class="user-account-menu" v-if="showLogin && authorized">
+            <template v-slot:activator="{ on }">
+              <v-btn text large v-on="on" class="user-account-btn pl-2 pr-2">
+                <v-avatar size="32" color="primary" class="user-account-btn__avatar">
+                  {{ username.slice(0,1)}}
+                </v-avatar>
+                <span class="user-account-btn__user-name ml-1 mr-1">{{ username }}</span>
+                <v-icon>mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
           <v-list class="pt-0 pb-0">
-            <v-list-item @click="goToUserProfile">
-              <v-list-item-title>Edit Contact Information</v-list-item-title>
+            <v-list-item class="user-detail">
+              <v-avatar size="42" color="primary" class="user-detail__avatar">
+                {{ username.slice(0,1)}}
+              </v-avatar>
+              <span class="user-detail__user-name">{{ username }}</span>
+            </v-list-item>
+            <v-divider></v-divider>
+            <v-list-item small @click="goToUserProfile">
+              Edit Profile
+            </v-list-item>
+            <v-list-item small @click="logout">
+              Log out
             </v-list-item>
           </v-list>
         </v-menu>
-
-        <v-btn outlined color="#ffffff" class="log-out-btn ml-1" v-if="authorized" @click="logout">Log out</v-btn>
       </div>
     </div>
   </header>
@@ -63,6 +73,10 @@ export default class SbcHeader extends Vue {
       return false
     }
     return true
+  }
+
+  showUserInitial () {
+
   }
 
   logout () {
@@ -104,7 +118,6 @@ export default class SbcHeader extends Vue {
 
     .v-btn {
       margin-right: 0;
-      font-weight: 700;
     }
   }
 
@@ -118,14 +131,13 @@ export default class SbcHeader extends Vue {
 
   .brand__image {
     display: block;
-    margin-right: 1.5rem;
-    margin-left: -0.1rem;
+    margin-right: 1.25rem;
     max-height: 70px;
   }
 
   .brand__title {
-    font-size: 1.125rem;
-    font-weight: 400;
+    font-size: 1rem;
+    font-weight: 700;
   }
 
   @media (max-width: 600px) {
@@ -153,7 +165,42 @@ export default class SbcHeader extends Vue {
     border-color: $app-header-font-color;
   }
 
+  .user-account-menu .v-list {
+    min-width: 10rem;
+    font-size: 0.875rem;
+  }
+
   .v-btn.user-account-btn {
     color: $app-header-font-color;
+  }
+
+  .v-avatar {
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  .user-account-btn__avatar {
+    margin-right: 0.25rem;
+  }
+
+  .user-account-btn__menu-icon {
+    margin-right: -0.5rem;
+  }
+
+  @media (max-width: 960px) {
+    .user-account-btn__user-name {
+      display: none;
+    }
+  }
+
+  .user-detail {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .user-detail__avatar {
+    margin-right: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
   }
 </style>
