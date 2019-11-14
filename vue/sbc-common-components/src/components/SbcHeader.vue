@@ -159,6 +159,7 @@ export default class SbcHeader extends Vue {
   .log-in-btn {
     color: $BCgovBlue5;
     background-color: $BCgovGold4;
+    font-weight: 700;
   }
 
   .log-out-btn {
