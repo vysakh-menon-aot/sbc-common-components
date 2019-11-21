@@ -19,7 +19,7 @@
         <v-menu bottom left fixed transition="slide-y-transition" content-class="user-account-menu" v-if="showLogin && authorized">
             <template v-slot:activator="{ on }">
               <v-btn text large v-on="on" class="user-account-btn pl-2 pr-2">
-                <v-avatar size="32" color="primary" class="user-account-btn__avatar">
+                <v-avatar tile size="27" class="user-account-btn__avatar">
                   {{ username.slice(0,1)}}
                 </v-avatar>
                 <span class="user-account-btn__user-name ml-1 mr-1">{{ username }}</span>
@@ -28,12 +28,11 @@
             </template>
           <v-list class="pt-0 pb-0">
             <v-list-item class="user-detail">
-              <v-avatar size="42" color="primary" class="user-detail__avatar">
+              <v-avatar tile size="36" class="user-detail__avatar">
                 {{ username.slice(0,1)}}
               </v-avatar>
               <span class="user-detail__user-name">{{ username }}</span>
             </v-list-item>
-            <v-divider></v-divider>
             <v-list-item small @click="goToUserProfile">
               Edit Profile
             </v-list-item>
@@ -90,7 +89,24 @@ export default class SbcHeader extends Vue {
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/scss/theme.scss";
+  @import "../assets/scss/theme.scss";
+
+  $app-header-font-color: #ffffff;
+
+  .app-header {
+    height: 70px;
+    color: $app-header-font-color;
+    border-bottom: 2px solid $BCgovGold5;
+    background-color: $BCgovBlue5;
+
+    .container {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
 
 $app-header-font-color: #ffffff;
 
@@ -158,46 +174,36 @@ $app-header-font-color: #ffffff;
   font-weight: 700;
 }
 
-.log-out-btn {
-  border-color: $app-header-font-color;
-}
-
-.user-account-menu .v-list {
-  min-width: 10rem;
-  font-size: 0.875rem;
-}
+  .user-account-btn__avatar {
+    border-radius: 0.2rem;
+    margin-right: 0.25rem;
+    font-size: 0.875rem;
+  }
 
 .v-btn.user-account-btn {
   color: $app-header-font-color;
 }
 
 .v-avatar {
+  background-color: $BCgovBlue3;
   color: #ffffff;
-  font-weight: 700;
 }
 
-.user-account-btn__avatar {
-  margin-right: 0.25rem;
-}
-
-.user-account-btn__menu-icon {
-  margin-right: -0.5rem;
-}
-
-@media (max-width: 960px) {
-  .user-account-btn__user-name {
-    display: none;
-  }
+.v-list {
+  font-size: 0.875rem;
 }
 
 .user-detail {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
+  background: $gray2;
 }
 
 .user-detail__avatar {
-  margin-right: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
+  margin-right: 0.75rem;
+  margin-left: -0.1rem;
+  border-radius: 0.2rem;
+  line-height: 1.5;
+  font-size: 1.35rem;
 }
 </style>

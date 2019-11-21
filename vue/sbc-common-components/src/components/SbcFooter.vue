@@ -1,5 +1,5 @@
 <template>
-  <footer class="app-footer" app>
+  <footer class="app-footer">
     <div class="container">
       <nav>
         <ul>
@@ -25,8 +25,11 @@ export default Vue.extend({
 <style lang="scss" scoped>
   @import "../assets/scss/theme.scss";
 
-  .app-footer{
-    border-top: 3px solid $BCgovGold5;
+  .app-footer {
+    display: flex;
+    align-items: center;
+    min-height: 3.5rem;
+    border-top: 2px solid $BCgovGold5;
     background-color: $BCgovBlue5;
     font-size: 0.9375rem;
   }
