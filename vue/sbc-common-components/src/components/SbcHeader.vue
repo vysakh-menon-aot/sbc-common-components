@@ -89,31 +89,14 @@ export default class SbcHeader extends Vue {
 </script>
 
 <style lang="scss" scoped>
-  @import "../assets/scss/theme.scss";
-
-  $app-header-font-color: #ffffff;
-
-  .app-header {
-    height: 70px;
-    color: $app-header-font-color;
-    border-bottom: 2px solid $BCgovGold5;
-    background-color: $BCgovBlue5;
-
-    .container {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      padding-top: 0;
-      padding-bottom: 0;
-    }
-  }
+@import "../assets/scss/theme.scss";
 
 $app-header-font-color: #ffffff;
 
 .app-header {
   height: 70px;
   color: $app-header-font-color;
-  border-bottom: 3px solid $BCgovGold5;
+  border-bottom: 2px solid $BCgovGold5;
   background-color: $BCgovBlue5;
 
   .container {
@@ -205,5 +188,11 @@ $app-header-font-color: #ffffff;
   border-radius: 0.2rem;
   line-height: 1.5;
   font-size: 1.35rem;
+}
+
+@media (max-width: 960px) {
+  .user-account-btn__user-name {
+    display: none;
+  }
 }
 </style>
