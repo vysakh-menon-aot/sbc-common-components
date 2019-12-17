@@ -15,7 +15,6 @@ import { Vue, Component, Prop } from 'vue-property-decorator'
 import SbcSystemBanner from 'sbc-common-components/src/components/SbcSystemBanner.vue'
 import StatusServices from '../services/status.services'
 import { ServiceStatus } from '../models/ServiceStatus'
-import { getModule } from 'vuex-module-decorators'
 
 Vue.use(VueI18n)
 
