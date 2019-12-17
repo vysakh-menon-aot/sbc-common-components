@@ -12,7 +12,7 @@ import VueI18n from 'vue-i18n'
 import { getBoolean } from '../util/common-util'
 import { OutageMessages } from '../util/enums'
 import { Vue, Component, Prop } from 'vue-property-decorator'
-import SbcSystemBanner from 'sbc-common-components/src/components/SbcSystemBanner.vue'
+import SbcSystemBanner from '../components/SbcSystemBanner.vue'
 import StatusServices from '../services/status.services'
 import { ServiceStatus } from '../models/ServiceStatus'
 
