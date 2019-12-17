@@ -1,6 +1,6 @@
 {
   "name": "sbc-common-components",
-  "version": "2.0.27",
+  "version": "2.0.28",
   "private": false,
   "description": "Common Vue Components to be used across SBC projects",
   "license": "Apache-2.0",
@@ -28,6 +28,7 @@
     "provinces": "^1.11.0",
     "regenerator-runtime": "^0.13.3",
     "vue": "^2.6.10",
+    "vue-i18n": "^8.0.0",
     "vue-router": "^3.0.3",
     "vue2-filters": "^0.7.1",
     "vuelidate": "^0.7.4",
