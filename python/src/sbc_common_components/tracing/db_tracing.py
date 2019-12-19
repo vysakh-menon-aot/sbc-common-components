@@ -21,7 +21,12 @@ class DBTracing:  # pylint: disable=too-few-public-methods
     """Tracer that can trace certain database actions."""
 
     @staticmethod
-    def query_tracing(conn, cursor, statement: str, parameters, context, executemany):  # pylint: disable=too-many-arguments, unused-argument
+    def query_tracing(conn,  # pylint: disable=unused-argument,too-many-arguments
+                      cursor,  # pylint: disable=unused-argument
+                      statement: str,
+                      parameters,
+                      context,  # pylint: disable=unused-argument
+                      executemany):  # pylint: disable=unused-argument
         """Tracing sql statement before cursor execute. bypass the empty statement and ops check statement."""
         if statement and not statement.isspace() and statement != 'select 1':
             tracer = opentracing.tracer

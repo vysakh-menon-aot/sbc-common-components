@@ -1,3 +1,5 @@
 flask
-Flask-OpenTracing==1.0.0
-opentracing==2.0.0
+Flask-SQLAlchemy
+flask-jwt-oidc>=0.1.5
+Flask-OpenTracing
+jaeger-client

@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Function to handle all exceptions."""
-from flask import jsonify
+from flask import jsonify, Response
+from werkzeug.exceptions import HTTPException, default_exceptions
+
 from flask_jwt_oidc import AuthError
 from sqlalchemy.exc import SQLAlchemyError
-from werkzeug.exceptions import HTTPException, default_exceptions
 
 
 class ExceptionHandler():
@@ -28,21 +29,25 @@ class ExceptionHandler():
 
     def auth_handler(self, error):  # pylint: disable=no-self-use
         """Handle AuthError."""
-        response = jsonify(error.error)
+        response: Response = jsonify(error.error)
         response.status_code = error.status_code
+        response.headers.add('Access-Control-Allow-Origin', '*')
         return response
 
     def db_handler(self, error):  # pylint: disable=no-self-use
         """Handle Database error."""
-        response = {'error': '{}'.format(error.__dict__['code']),
-                    'message': '{}'.format(str(error.__dict__['orig']))}, 500
+        response: Response = jsonify({'error': '{}'.format(error.__dict__['code']),
+                                      'message': '{}'.format(str(error.__dict__['orig']))})
+        response.status_code = error.status_code
+        response.headers.add('Access-Control-Allow-Origin', '*')
         return response
 
     def std_handler(self, error):  # pylint: disable=no-self-use
         """Handle standard exception."""
         message = error.message if hasattr(error, 'message') else error.description
-        response = jsonify(message=message)
+        response: Response = jsonify(message=message)
         response.status_code = error.code if isinstance(error, HTTPException) else 500
+        response.headers.add('Access-Control-Allow-Origin', '*')
         return response
 
     def init_app(self, app):

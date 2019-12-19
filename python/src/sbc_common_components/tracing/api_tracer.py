@@ -13,8 +13,8 @@
 # limitations under the License.
 """Function to creating tracer instance."""
 import opentracing
-from opentracing import Tracer
 from jaeger_client import Config as JaegerConfig
+from opentracing import Tracer
 
 
 class ApiTracer:
