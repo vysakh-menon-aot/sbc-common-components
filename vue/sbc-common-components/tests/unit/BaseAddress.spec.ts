@@ -59,8 +59,7 @@ const basicSchema = {
 const differentStreet: string = '13 Pig Sty Alley'
 
 // Input field selectors to test changes to the DOM elements.
-const streetAddressSelector: string = '[name="street-address"]'
-const deliveryInstructionsSelector: string = '[name="delivery-instructions"]'
+const streetAddressSelector: string = '.street-address input'
 
 /**
  * Returns the last event for a given name, to be used for testing event propagation in response to component changes.
@@ -93,7 +92,7 @@ function createComponent (
   schema: object = { ...basicSchema })
 : Wrapper<BaseAddress> {
   return mount(BaseAddress, {
-    // sync: false, // fixes some warnings but causes some tests to fail - revise this later
+    sync: false,
     propsData: { address, editing, schema },
     vuetify
   })
@@ -209,54 +208,19 @@ describe('BaseAddress - base tests', () => {
     expect(getLastEvent(wrapper, 'valid')).toBe(true)
 
     // Check that each of the inputs contains the value.
-    expect(wrapper.find('[name="street-address"]').element['value']).toEqual(basicAddress.streetAddress)
-    expect(wrapper.find('[name="street-address-additional"]').element['value'])
+    expect(wrapper.find(streetAddressSelector).element['value']).toEqual(basicAddress.streetAddress)
+    expect(wrapper.find('.street-address-additional textarea').element['value'])
       .toEqual(basicAddress.streetAddressAdditional)
-    expect(wrapper.find('[name="address-city"]').element['value']).toEqual(basicAddress.addressCity)
+    expect(wrapper.find('.address-city input').element['value']).toEqual(basicAddress.addressCity)
     // NB: for v-select, look at the div before the input
-    expect(wrapper.find('[name="address-region"]').element['previousElementSibling'].textContent)
+    expect(wrapper.find('.address-region .v-select__selection').text())
       .toEqual('British Columbia') // NB: long name
-    expect(wrapper.find('[name="postal-code"]').element['value']).toEqual(basicAddress.postalCode)
+    expect(wrapper.find('.postal-code input').element['value']).toEqual(basicAddress.postalCode)
     // NB: for v-select, look at the div before the input
-    expect(wrapper.find('[name="address-country"]').element['previousElementSibling'].textContent)
+    expect(wrapper.find('.address-country .v-select__selection').text())
       .toEqual('Canada') // NB: long name
-    expect(wrapper.find('[name="delivery-instructions"]').element['value'])
+    expect(wrapper.find('.delivery-instructions textarea').element['value'])
       .toEqual(basicAddress.deliveryInstructions)
-  })
-
-  it('is modified when the street changes', () => {
-    const wrapper: Wrapper<BaseAddress> = createComponent()
-
-    const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
-    inputElement.setValue(differentStreet)
-
-    // The last "modified" event should indicate that the address has been modified.
-    expect(wrapper.emitted().modified).toBeDefined()
-    expect(getLastEvent(wrapper, 'modified')).toBe(true)
-  })
-
-  it('is unmodified when street is modified then unmodified', () => {
-    const wrapper: Wrapper<BaseAddress> = createComponent()
-
-    const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
-    inputElement.setValue(differentStreet)
-    inputElement.setValue(basicAddress.streetAddress)
-
-    // The last "modified" event should indicate that the address has not been modified.
-    expect(wrapper.emitted().modified).toBeDefined()
-    expect(getLastEvent(wrapper, 'modified')).toBe(false)
-  })
-
-  it('is unmodified when undefined field is defined as empty', () => {
-    const modifiedAddress: object = { ...basicAddress, deliveryInstructions: undefined }
-    const wrapper: Wrapper<BaseAddress> = createComponent(modifiedAddress)
-
-    const inputElement: Wrapper<Vue> = wrapper.find(deliveryInstructionsSelector)
-    inputElement.setValue('')
-
-    // The last "modified" event should indicate that the address has not been modified.
-    expect(wrapper.emitted().modified).toBeDefined()
-    expect(getLastEvent(wrapper, 'modified')).toBe(false)
   })
 
   it('emits an update:address when the form changes', () => {
@@ -272,12 +236,12 @@ describe('BaseAddress - base tests', () => {
     expect(getLastEvent(wrapper, 'update:address')).toMatchObject(modifiedAddress)
   })
 
-  it('changes the form when the model changes', () => {
+  it('changes the form when the model changes', async () => {
     const addressToChange: object = { ...basicAddress }
     const wrapper: Wrapper<BaseAddress> = createComponent(addressToChange)
 
     addressToChange['streetAddress'] = differentStreet
-    wrapper.setProps({ address: { ...addressToChange } })
+    await wrapper.setProps({ address: { ...addressToChange } })
 
     const inputElement: Wrapper<Vue> = wrapper.find(streetAddressSelector)
 
@@ -369,6 +333,7 @@ describe('BaseAddress - validation tests', () => {
   it('is invalid with missing region', async () => {
     // you can't "unselect" a v-select, so just create component without region
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: { addressRegion: null },
         editing: true,
@@ -414,6 +379,7 @@ describe('BaseAddress - validation tests', () => {
   it('is invalid with missing country', async () => {
     // you can't "unselect" a v-select, so just create component without country
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: { addressCountry: null },
         editing: true,
@@ -463,6 +429,7 @@ describe('BaseAddress - validation tests', () => {
 describe('BaseAddress - validation rules', () => {
   it('handles "required" rule', async () => {
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: { addressCountry: '' },
         editing: true,
@@ -487,6 +454,7 @@ describe('BaseAddress - validation rules', () => {
 
   it('handles "minLength" rule', async () => {
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: { addressCountry: 'Canada' },
         editing: true,
@@ -511,6 +479,7 @@ describe('BaseAddress - validation rules', () => {
 
   it('handles "maxLength" rule', async () => {
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: { addressCountry: 'Canada' },
         editing: true,
@@ -535,6 +504,7 @@ describe('BaseAddress - validation rules', () => {
 
   it('handles "isCanada" rule', async () => {
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: { addressCountry: 'US' },
         editing: true,
@@ -557,11 +527,12 @@ describe('BaseAddress - validation rules', () => {
     expect(wrapper.find('[name="address-form"]').text()).toContain('Address must be in Canada')
 
     // Check that country input control is readonly.
-    expect(wrapper.find('[name="address-country"]').attributes('readonly')).toBe('readonly')
+    expect(wrapper.find('.address-country input').attributes('readonly')).toBe('readonly')
   })
 
   it('handles "isBC" rule', async () => {
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: { addressCountry: 'CA', addressRegion: 'AB' },
         editing: true,
@@ -584,13 +555,14 @@ describe('BaseAddress - validation rules', () => {
     expect(wrapper.find('[name="address-form"]').text()).toContain('Address must be in BC')
 
     // Check that region input control is readonly.
-    expect(wrapper.find('[name="address-region"]').attributes('readonly')).toBe('readonly')
+    expect(wrapper.find('.address-region input').attributes('readonly')).toBe('readonly')
   })
 })
 
 describe('BaseAddress - conditional validation', () => {
   it('sets region as required when country is Canada', async () => {
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: {
           addressRegion: null,
@@ -621,6 +593,7 @@ describe('BaseAddress - conditional validation', () => {
 
   it('sets region as optional when country is not Canada', async () => {
     const wrapper: Wrapper<BaseAddress> = mount(BaseAddress, {
+      sync: false,
       propsData: {
         address: {
           addressRegion: null,

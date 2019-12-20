@@ -11,7 +11,15 @@ export default class ValidationMixin extends Vue {
    * @returns A Vuetify rules object.
    */
   public createVuetifyRulesObject (model: string): { [attr: string]: Array<Function> } {
-    let obj = {}
+    let obj = {
+      streetAddress: [],
+      streetAddressAdditional: [],
+      addressCity: [],
+      addressRegion: [],
+      postalCode: [],
+      addressCountry: [],
+      deliveryInstructions: []
+    }
 
     // ensure Vuelidate state object is initialized
     if (this.$v && this.$v[model]) {
