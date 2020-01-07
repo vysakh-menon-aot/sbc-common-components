@@ -15,7 +15,8 @@
         :key="lineItem.filingType"
       >
         <div class="fee-list__item-name">{{lineItem.filingType}}</div>
-        <div class="fee-list__item-value">{{lineItem.fee > 0 ? (lineItem.fee | currency) : 'No Fee'}}</div>
+        <div class="fee-list__item-value" v-if="lineItem.fee > 0">{{lineItem.fee | currency}}</div>
+        <div class="fee-list__item-value" v-else>No Fee</div>
       </li>
     </v-slide-y-transition>
 
