@@ -20,6 +20,7 @@ module.exports = {
           '/Layout/',
           '/FeeCalculator/',
           '/BaseAddress/',
+          '/TokenService/',
         ]
       },
       {
