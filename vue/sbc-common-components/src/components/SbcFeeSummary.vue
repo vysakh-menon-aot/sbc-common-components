@@ -49,7 +49,7 @@ export default class SbcFeeSummary extends Vue {
    */
 
   @Prop({ default: [] })
-  private filingData: { filingDescription: string, filingTypeCode: string, entityType: string }[]
+  private filingData: { filingDescription: string, filingTypeCode: string, waiveFees: boolean, entityType: string }[]
 
   @Prop({ default: '' })
   private payURL: string

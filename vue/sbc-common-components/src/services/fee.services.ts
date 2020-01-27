@@ -8,7 +8,7 @@ import { Fee } from '../models/fee'
 const API_URL = 'https://pay-api-dev.pathfinder.gov.bc.ca/api/v1/fees'
 export default {
 
-  getFee (filingData: { filingDescription: string, filingTypeCode: string, entityType: string }[], payApiUrl: string)
+  getFee (filingData: { filingDescription: string, filingTypeCode: string, waiveFees: boolean, entityType: string }[], payApiUrl: string)
   : Promise<Fee[]> {
     const token = sessionStorage.getItem('KEYCLOAK_TOKEN')
     if (filingData.length < 1) {
@@ -19,7 +19,7 @@ export default {
       if (!filing.filingTypeCode) {
         Promise.resolve()
       }
-      var url = `${payApiUrl}fees/${filing.entityType}/${filing.filingTypeCode}`
+      var url = `${payApiUrl}fees/${filing.entityType}/${filing.filingTypeCode}?waiveFees=${filing.waiveFees ? filing.waiveFees : false}`
 
       promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}` } }))
     }

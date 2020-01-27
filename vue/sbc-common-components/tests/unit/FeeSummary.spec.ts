@@ -19,7 +19,8 @@ describe('SbcFeeSummary.vue', () => {
     const filingData = [{
       filingTypeCode: 'OTANN',
       entityType: 'CP',
-      filingDescription: ''
+      filingDescription: '',
+      waiveFees: false
     }]
     const wrapper = mount(SbcFeeSummary, {
       propsData: { filingData }
@@ -40,7 +41,8 @@ describe('SbcFeeSummary.vue', () => {
     const filingData = [{
       filingTypeCode: 'OTANN',
       entityType: 'CP',
-      filingDescription: ''
+      filingDescription: '',
+      waiveFees: false
     }]
     // @ts-ignore
     const wrapper = mount(SbcFeeSummary, {
@@ -58,7 +60,8 @@ describe('SbcFeeSummary.vue', () => {
     const filingData = [{
       filingTypeCode: 'OTANN',
       entityType: 'CP',
-      filingDescription: ''
+      filingDescription: '',
+      waiveFees: false
     }]
     // @ts-ignore
     const wrapper = mount(SbcFeeSummary, {

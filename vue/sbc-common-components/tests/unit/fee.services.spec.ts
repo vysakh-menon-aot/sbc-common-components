@@ -15,7 +15,7 @@ const API_URL = 'https://pay-api-dev.pathfinder.gov.bc.ca/api/v1/'
 describe('with 1 fee in the list', () => {
   const results = []
   const mockAxiosSpreadResult = jest.fn()
-  var filingCodes = [{ filingDescription: 'Annual Filing', filingTypeCode: 'OTANN', entityType: 'CP' }]
+  var filingCodes = [{ filingDescription: 'Annual Filing', filingTypeCode: 'OTANN', waiveFees: false, entityType: 'CP' }]
   beforeAll(() => {
     // @ts-ignore
     Axios.get.mockClear()
@@ -27,14 +27,14 @@ describe('with 1 fee in the list', () => {
   })
 
   it('should call Axios.get once for each Fee ', () => {
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN?waiveFees=false`, { 'headers': { 'Authorization': 'Bearer null' } })
   })
 })
 
 describe('with 2 fee in the list', () => {
   const results = []
   const mockAxiosSpreadResult = jest.fn()
-  var filingCodes = [{ filingDescription: 'Annual Filing', filingTypeCode: 'OTANN', entityType: 'CP' }, { filingDescription: 'Director Change', filingTypeCode: 'OTADD', entityType: 'CP' }]
+  var filingCodes = [{ filingDescription: 'Annual Filing', filingTypeCode: 'OTANN', entityType: 'CP', waiveFees: false }, { filingDescription: 'Director Change', filingTypeCode: 'OTADD', entityType: 'CP', waiveFees: false }]
   beforeAll(() => {
     // @ts-ignore
     Axios.get.mockClear()
@@ -46,7 +46,7 @@ describe('with 2 fee in the list', () => {
 
   it('should call Axios.get once for each student with name', () => {
     FeeServices.getFee(filingCodes, API_URL)
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTADD`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN?waiveFees=false`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTADD?waiveFees=false`, { 'headers': { 'Authorization': 'Bearer null' } })
   })
 })
