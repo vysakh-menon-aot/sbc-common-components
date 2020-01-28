@@ -24,20 +24,20 @@
               <v-icon class="white--text">
                 mdi-bell-outline
               </v-icon>
-              <v-badge dot overlap offset-y="-6" color="error" v-if="pendingApprovalCount > 0"/>
+              <v-badge dot overlap offset-y="-6" color="error" v-if="_pendingApprovalCount > 0"/>
               <v-icon small>mdi-chevron-down</v-icon>
             </v-btn>
           </template>
           <v-list tile dense>
             <!-- No Items -->
-            <v-list-item v-if="pendingApprovalCount === 0">
+            <v-list-item v-if="_pendingApprovalCount === 0">
               <v-list-item-title>No actions required</v-list-item-title>
             </v-list-item>
 
-            <v-list-item two-line v-if="pendingApprovalCount > 0" @click="goToTeamManagement()">
+            <v-list-item two-line v-if="_pendingApprovalCount > 0" @click="goToTeamManagement()">
               <v-list-item-content>
-                <v-list-item-title>You have {{ pendingApprovalCount }} pending approvals</v-list-item-title>
-                <v-list-item-subtitle>{{ pendingApprovalCount }} <span>{{pendingApprovalCount == '1' ? 'team member' : 'team members'}}</span> require approval to access this account</v-list-item-subtitle>
+                <v-list-item-title>You have {{ _pendingApprovalCount }} pending approvals</v-list-item-title>
+                <v-list-item-subtitle>{{ _pendingApprovalCount }} <span>{{_pendingApprovalCount == '1' ? 'team member' : 'team members'}}</span> require approval to access this account</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
           </v-list>
@@ -52,7 +52,7 @@
               </v-avatar>
               <div class="user-info">
                 <div class="user-name" data-test="user-name">{{ username }}</div>
-                <div class="account-name" v-if="accountType !== 'IDIR'" data-test="account-name">{{ accountName }}</div>
+                <div class="account-name" v-if="accountType !== 'IDIR'" data-test="account-name">{{ _accountName }}</div>
               </div>
               <v-icon small class="ml-2">mdi-chevron-down</v-icon>
             </v-btn>
@@ -64,7 +64,7 @@
               </v-list-item-avatar>
               <v-list-item-content class="user-info">
                 <v-list-item-title class="user-name" data-test="menu-user-name">{{ username }}</v-list-item-title>
-                <v-list-item-subtitle class="account-name" v-if="accountType !== 'IDIR'" data-test="menu-account-name">{{ accountName }}</v-list-item-subtitle>
+                <v-list-item-subtitle class="account-name" v-if="accountType !== 'IDIR'" data-test="menu-account-name">{{ _accountName }}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
             <!-- BEGIN: Hide if authentication is IDIR -->
@@ -99,6 +99,7 @@
               </v-list-item-icon>
               <v-list-item-title>Team Members</v-list-item-title>
             </v-list-item>
+            <v-list-item v-if="showAccountSwitching">HIDE ME</v-list-item>
           </v-list>
         </v-menu>
       </div>
@@ -107,25 +108,71 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop } from 'vue-property-decorator'
+import { Component, Prop, Watch } from 'vue-property-decorator'
 import Vue from 'vue'
 import { integer } from 'vuelidate/lib/validators'
+import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
+import ConfigHelper from '../util/config-helper'
+import { SessionStorageKeys } from '../util/constants'
 
 @Component({})
 export default class SbcHeader extends Vue {
   @Prop({ default: '-' }) private accountName: string;
   @Prop({ default: 0 }) private pendingApprovalCount: number;
-  get username () : string {
-    return sessionStorage.getItem('USER_FULL_NAME') || '-'
+  private ldClient: LDClient;
+
+  get showAccountSwitching (): boolean {
+    try {
+      const flags = JSON.parse(ConfigHelper.getFromSession(SessionStorageKeys.LaunchDarklyFlags))
+      return flags && flags['account-switching']
+    } catch (exception) {
+      return false
+    }
   }
 
-  get authorized (): boolean {
-    let auth = sessionStorage.getItem('KEYCLOAK_TOKEN')
+  private get _accountName (): string {
+    return this.accountName || ConfigHelper.getFromSession(SessionStorageKeys.AccountName) || '-'
+  }
+
+  private get _pendingApprovalCount (): number {
+    try {
+      return this.pendingApprovalCount ? this.pendingApprovalCount : parseInt(ConfigHelper.getFromSession(SessionStorageKeys.PendingApprovalCount) || '0')
+    } catch (exception) {
+      return 0
+    }
+  }
+
+  @Watch('accountName')
+  private onAccountNameChanged (val: string, oldVal: string): void {
+    ConfigHelper.addToSession(SessionStorageKeys.AccountName, val)
+  }
+
+  @Watch('pendingApprovalCount')
+  private onPendingApprovalCountChanged (val: number, oldVal: number): void {
+    ConfigHelper.addToSession(SessionStorageKeys.PendingApprovalCount, val)
+  }
+
+  private get username () : string {
+    return ConfigHelper.getFromSession(SessionStorageKeys.UserFullName) || '-'
+  }
+
+  private get authorized (): boolean {
+    let auth = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
     return !!auth
   }
 
-  get accountType (): string {
-    return sessionStorage.getItem('USER_ACCOUNT_TYPE') || 'BCSC'
+  private get accountType (): string {
+    return ConfigHelper.getFromSession(SessionStorageKeys.UserAccountType) || 'BCSC'
+  }
+
+  private mounted () {
+    // Initialize LaunchDarkly flags and sync to session storage
+    const user = { 'key': 'sbc-common-components' }
+    this.ldClient = initialize('5db9da115f58e008123cd783', user)
+    this.ldClient.on('ready', () => {
+      console.log('It\'s now safe to request feature flags')
+      ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
+    })
   }
 
   logout () {
@@ -136,15 +183,15 @@ export default class SbcHeader extends Vue {
     window.location.assign('/cooperatives/auth/signin/bcsc')
   }
 
-  goToUserProfile () {
+  private goToUserProfile () {
     window.location.assign('/cooperatives/auth/userprofile')
   }
 
-  goToAccountSettings () {
+  private goToAccountSettings () {
     window.location.assign('/cooperatives/auth/accountsettings')
   }
 
-  goToTeamManagement () {
+  private goToTeamManagement () {
     window.location.assign('/cooperatives/auth/account-settings/team-members')
   }
 }

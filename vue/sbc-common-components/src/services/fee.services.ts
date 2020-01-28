@@ -1,5 +1,7 @@
 import Axios from 'axios'
 import { Fee } from '../models/fee'
+import ConfigHelper from '@/util/config-helper'
+import { SessionStorageKeys } from '@/util/constants'
 
 // const API_URL = 'https://mock-lear-tools.pathfinder.gov.bc.ca/rest/SBC+Pay+API+Reference/1.0.1'
 // sample Microcks URLs =
@@ -10,7 +12,7 @@ export default {
 
   getFee (filingData: { filingDescription: string, filingTypeCode: string, waiveFees: boolean, entityType: string }[], payApiUrl: string)
   : Promise<Fee[]> {
-    const token = sessionStorage.getItem('KEYCLOAK_TOKEN')
+    const token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
     if (filingData.length < 1) {
       Promise.resolve()
     }

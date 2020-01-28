@@ -1,8 +1,9 @@
 import Keycloak, { KeycloakInitOptions, KeycloakInstance } from 'keycloak-js'
+import ConfigHelper from '@/util/config-helper'
+import { SessionStorageKeys } from '@/util/constants'
 
 class TokenServices {
   private kc: KeycloakInstance | undefined
-  private static instance: TokenServices
   private counter = 0
   private REFRESH_ATTEMPT_INTERVAL = 10 // in seconds
   private timerId = 0
@@ -16,9 +17,9 @@ class TokenServices {
       onLoad: 'login-required',
       checkLoginIframe: false,
       timeSkew: 0,
-      token: sessionStorage.getItem('KEYCLOAK_TOKEN') || undefined,
-      refreshToken: sessionStorage.getItem('KEYCLOAK_REFRESH_TOKEN') || undefined,
-      idToken: sessionStorage.getItem('KEYCLOAK_ID_TOKEN') || undefined
+      token: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) || undefined,
+      refreshToken: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakRefreshToken) || undefined,
+      idToken: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakIdToken) || undefined
     }
 
     return new Promise((resolve, reject) => {
@@ -26,12 +27,12 @@ class TokenServices {
       this.kc.init(kcOptions)
         .success(authenticated => {
           console.info('[TokenServices] is User Authenticated?: Syncing ' + authenticated)
-          const preventStorageSync = sessionStorage.getItem('PREVENT_STORAGE_SYNC') || false
+          const preventStorageSync = ConfigHelper.getFromSession(SessionStorageKeys.PreventStorageSync) || false
           if (this.kc) {
             if (!preventStorageSync) {
               this.syncSessionStorage()
             }
-            sessionStorage.removeItem('PREVENT_STORAGE_SYNC')
+            ConfigHelper.removeFromSession(SessionStorageKeys.PreventStorageSync)
             resolve(this.kc.token)
           } else {
             reject(new Error('Could not Initialize KC'))
@@ -77,14 +78,14 @@ class TokenServices {
   private scheduleRefreshToken (refreshEarlyTimeinMilliseconds: number) {
     let refreshTokenExpiresIn = -1
     // check if refresh token is still valid . Or else clear all timers and throw errors
-    if (this.kc && this.kc.timeSkew && this.kc.refreshTokenParsed) {
+    if (this.kc && this.kc.timeSkew !== undefined && this.kc.refreshTokenParsed) {
       refreshTokenExpiresIn = this.kc.refreshTokenParsed['exp']! - Math.ceil(new Date().getTime() / 1000) + this.kc.timeSkew
     }
     if (refreshTokenExpiresIn < 0) {
       throw new Error('Refresh Token Expired. No more token refreshes')
     }
     let expiresIn = -1
-    if (this.kc && this.kc.tokenParsed && this.kc.tokenParsed['exp'] && this.kc.timeSkew) {
+    if (this.kc && this.kc.tokenParsed && this.kc.tokenParsed['exp'] && this.kc.timeSkew !== undefined) {
       expiresIn = this.kc.tokenParsed['exp'] - Math.ceil(new Date().getTime() / 1000) + this.kc.timeSkew
     }
     if (expiresIn < 0) {
@@ -111,21 +112,21 @@ class TokenServices {
   private syncSessionStorage () {
     if (this.kc) {
       if (this.kc.token) {
-        sessionStorage.setItem('KEYCLOAK_TOKEN', this.kc.token)
+        ConfigHelper.addToSession(SessionStorageKeys.KeyCloakToken, this.kc.token)
       }
       if (this.kc.refreshToken) {
-        sessionStorage.setItem('KEYCLOAK_REFRESH_TOKEN', this.kc.refreshToken)
+        ConfigHelper.addToSession(SessionStorageKeys.KeyCloakRefreshToken, this.kc.refreshToken)
       }
       if (this.kc.idToken) {
-        sessionStorage.setItem('KEYCLOAK_ID_TOKEN', this.kc.idToken)
+        ConfigHelper.addToSession(SessionStorageKeys.KeyCloakIdToken, this.kc.idToken)
       }
     }
   }
 
   decodeToken () {
     try {
-      let token = sessionStorage.getItem('KEYCLOAK_TOKEN')
-      if (token != null) {
+      const token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
+      if (token) {
         const base64Url = token.split('.')[1]
         const base64 = decodeURIComponent(window.atob(base64Url).split('').map(function (c) {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
