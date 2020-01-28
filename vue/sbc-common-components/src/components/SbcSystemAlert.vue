@@ -14,7 +14,7 @@ import { OutageMessages } from '../util/enums'
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import SbcSystemBanner from '../components/SbcSystemBanner.vue'
 import StatusServices from '../services/status.services'
-import { ServiceStatus } from '../models/ServiceStatus'
+import { ServiceStatus } from '../models'
 
 Vue.use(VueI18n)
 

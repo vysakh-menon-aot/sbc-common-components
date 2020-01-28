@@ -1,5 +1,5 @@
 import Axios, { AxiosResponse } from 'axios'
-import { ServiceStatus } from '@/models/ServiceStatus'
+import { ServiceStatus } from '@/models'
 
 export default {
 

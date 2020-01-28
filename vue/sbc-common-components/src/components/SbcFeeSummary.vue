@@ -36,23 +36,16 @@
 import { Vue, Component, Prop, Watch, Emit } from 'vue-property-decorator'
 import '../plugins/vuetify'
 import FeeServices from '../services/fee.services'
-import { Fee } from '../models/fee'
+import { Fee, FilingData } from '../models'
 
 @Component({})
 export default class SbcFeeSummary extends Vue {
-  /**
-   * This prop is an array of filing data. Each item should contain:
-   *   filingDescription: Optional. If exists, it will be displayed.
-   *                      Or else what ever comes from service call will be shown.
-   *   filingTypeCode: Mandatory. Example: OTADD, OTANN, etc
-   *   entityType: Example: CP.
-   */
-
+  /* This prop is an array of filing data. See model for details. */
   @Prop({ default: [] })
-  private filingData: { filingDescription: string, filingTypeCode: string, waiveFees: boolean, entityType: string }[]
+  private filingData!: Array<FilingData>
 
   @Prop({ default: '' })
-  private payURL: string
+  private payURL!: string
 
   /* class properties */
   private fees: Fee[] = []

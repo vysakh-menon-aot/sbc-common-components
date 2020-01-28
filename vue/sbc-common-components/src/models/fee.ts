@@ -1,4 +1,4 @@
 export interface Fee {
-  fee: number;
-  filingType: string;
+  fee: number
+  filingType: string
 }

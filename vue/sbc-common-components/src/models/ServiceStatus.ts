@@ -3,6 +3,6 @@
  */
 
 export interface ServiceStatus {
-    currentStatus: boolean,
-    nextUpTime: Date,
+    currentStatus: boolean
+    nextUpTime: Date
 }

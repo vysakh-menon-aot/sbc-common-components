@@ -67,7 +67,7 @@ The component accepts a list of Objects which includes filingTypeCode , entityTy
                  this.feeData = [{
                      filingTypeCode: 'OTANN',
                      entityType: 'CP',
-                     filingDescription: 'COPS Annaul Fee'
+                     filingDescription: 'COPS Annual Fee'
                  },
                      {
                          filingTypeCode: 'OTADD',
