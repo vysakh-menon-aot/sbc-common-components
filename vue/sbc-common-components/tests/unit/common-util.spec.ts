@@ -1,4 +1,4 @@
-import { getBoolean } from '@/util/common-util'
+import { getBoolean } from '../../src/util/common-util'
 
 describe('Common Util Test', () => {
   it('Test getBoolean works', () => {

@@ -1,6 +1,6 @@
 import Keycloak, { KeycloakInitOptions, KeycloakInstance } from 'keycloak-js'
-import ConfigHelper from '@/util/config-helper'
-import { SessionStorageKeys } from '@/util/constants'
+import ConfigHelper from '../util/config-helper'
+import { SessionStorageKeys } from '../util/constants'
 
 class TokenServices {
   private kc: KeycloakInstance | undefined
