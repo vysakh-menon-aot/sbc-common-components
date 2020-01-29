@@ -1,10 +1,11 @@
 import Axios, { AxiosResponse } from 'axios'
-import { ServiceStatus } from '@/models'
+import { ServiceStatus } from '../models'
+import ConfigHelper from '../util/config-helper'
 
-export default {
+const statusUrl = ConfigHelper.getStatusAPIUrl()
 
-  getServiceStatus (serviceName: string, statusURL: string): Promise<AxiosResponse<ServiceStatus>> {
-    return Axios.get(`${statusURL}/status/${serviceName}`)
+export default class StatusService {
+  static getServiceStatus (serviceName: string): Promise<AxiosResponse<ServiceStatus>> {
+    return Axios.get(`${statusUrl}/status/${serviceName}`)
   }
-
 }

@@ -15,7 +15,7 @@
         <span class="brand__title">BC Registries <span class="brand__title--wrap">& Online Services</span></span>
       </a>
       <div class="app-header__actions">
-        <v-btn color="#fcba19" class="log-in-btn" v-if="!authorized" @click="login">Log in with BC Services Card</v-btn>
+        <v-btn color="#fcba19" class="log-in-btn" v-if="!authorized" @click="login()">Log in with BC Services Card</v-btn>
 
         <!-- Messages -->
         <v-menu bottom left fixed transition="slide-y-transition" v-if="authorized">
@@ -24,20 +24,20 @@
               <v-icon class="white--text">
                 mdi-bell-outline
               </v-icon>
-              <v-badge dot overlap offset-y="-6" color="error" v-if="_pendingApprovalCount > 0"/>
+              <v-badge dot overlap offset-y="-6" color="error" v-if="pendingApprovalCount > 0"/>
               <v-icon small>mdi-chevron-down</v-icon>
             </v-btn>
           </template>
           <v-list tile dense>
             <!-- No Items -->
-            <v-list-item v-if="_pendingApprovalCount === 0">
+            <v-list-item v-if="pendingApprovalCount === 0">
               <v-list-item-title>No actions required</v-list-item-title>
             </v-list-item>
 
-            <v-list-item two-line v-if="_pendingApprovalCount > 0" @click="goToTeamManagement()">
+            <v-list-item two-line v-if="pendingApprovalCount > 0" @click="goToTeamMembers()">
               <v-list-item-content>
-                <v-list-item-title>You have {{ _pendingApprovalCount }} pending approvals</v-list-item-title>
-                <v-list-item-subtitle>{{ _pendingApprovalCount }} <span>{{_pendingApprovalCount == '1' ? 'team member' : 'team members'}}</span> require approval to access this account</v-list-item-subtitle>
+                <v-list-item-title>You have {{ pendingApprovalCount }} pending approvals</v-list-item-title>
+                <v-list-item-subtitle>{{ pendingApprovalCount }} <span>{{pendingApprovalCount == '1' ? 'team member' : 'team members'}}</span> require approval to access this account</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
           </v-list>
@@ -52,7 +52,7 @@
               </v-avatar>
               <div class="user-info">
                 <div class="user-name" data-test="user-name">{{ username }}</div>
-                <div class="account-name" v-if="accountType !== 'IDIR'" data-test="account-name">{{ _accountName }}</div>
+                <div class="account-name" v-if="accountType !== 'IDIR'" data-test="account-name">{{ accountName }}</div>
               </div>
               <v-icon small class="ml-2">mdi-chevron-down</v-icon>
             </v-btn>
@@ -64,18 +64,18 @@
               </v-list-item-avatar>
               <v-list-item-content class="user-info">
                 <v-list-item-title class="user-name" data-test="menu-user-name">{{ username }}</v-list-item-title>
-                <v-list-item-subtitle class="account-name" v-if="accountType !== 'IDIR'" data-test="menu-account-name">{{ _accountName }}</v-list-item-subtitle>
+                <v-list-item-subtitle class="account-name" v-if="accountType !== 'IDIR'" data-test="menu-account-name">{{ accountName }}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
             <!-- BEGIN: Hide if authentication is IDIR -->
-            <v-list-item @click="goToUserProfile" v-if="accountType !== 'IDIR'">
+            <v-list-item @click="goToUserProfile()" v-if="accountType !== 'IDIR'">
               <v-list-item-icon left>
                 <v-icon>mdi-account-outline</v-icon>
               </v-list-item-icon>
               <v-list-item-title>Edit Profile</v-list-item-title>
             </v-list-item>
             <!-- END -->
-            <v-list-item @click="logout">
+            <v-list-item @click="logout()">
               <v-list-item-icon left>
                 <v-icon>mdi-logout-variant</v-icon>
               </v-list-item-icon>
@@ -87,13 +87,13 @@
 
           <v-list tile dense v-if="accountType !== 'IDIR'">
             <v-subheader>ACCOUNT SETTINGS</v-subheader>
-            <v-list-item to="/account-settings/account-info">
+            <v-list-item @click="goToAccountInfo()">
               <v-list-item-icon left>
                 <v-icon>mdi-information-outline</v-icon>
               </v-list-item-icon>
               <v-list-item-title>Account Info</v-list-item-title>
             </v-list-item>
-            <v-list-item to="/account-settings/team-members">
+            <v-list-item @click="goToTeamMembers()">
               <v-list-item-icon left>
                 <v-icon>mdi-account-group-outline</v-icon>
               </v-list-item-icon>
@@ -114,42 +114,55 @@ import { integer } from 'vuelidate/lib/validators'
 import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
 import ConfigHelper from '../util/config-helper'
 import { SessionStorageKeys } from '../util/constants'
+import { mapState, mapActions } from 'vuex'
+import { Account } from '../models/account'
+import { getModule } from 'vuex-module-decorators'
+import AccountModule from '../store/modules/account'
+import store from '../store'
+import { Member } from '../models/member'
 
-@Component({})
+@Component({
+  beforeCreate () {
+    this.$store = store
+  },
+  computed: {
+    ...mapState('account', ['accounts', 'currentAccount', 'pendingApprovalCount'])
+  },
+  methods: {
+    ...mapActions('account', ['syncAccounts'])
+  }
+})
 export default class SbcHeader extends Vue {
-  @Prop({ default: '-' }) private accountName: string;
-  @Prop({ default: 0 }) private pendingApprovalCount: number;
-  private ldClient: LDClient;
+  private ldClient!: LDClient
+  private accountStoreModule = getModule<AccountModule>(AccountModule, store)
+  private readonly accounts!: Account[]
+  private readonly currentAccount!: Account
+  private readonly pendingApprovalCount!: number;
+  private readonly syncAccounts!: () => Promise<Account[]>
 
   get showAccountSwitching (): boolean {
     try {
-      const flags = JSON.parse(ConfigHelper.getFromSession(SessionStorageKeys.LaunchDarklyFlags))
+      const flags = JSON.parse(ConfigHelper.getFromSession(SessionStorageKeys.LaunchDarklyFlags) || '{}')
       return flags && flags['account-switching']
     } catch (exception) {
       return false
     }
   }
 
-  private get _accountName (): string {
-    return this.accountName || ConfigHelper.getFromSession(SessionStorageKeys.AccountName) || '-'
+  private get accountName (): string {
+    return this.currentAccount && this.currentAccount.name
   }
 
-  private get _pendingApprovalCount (): number {
-    try {
-      return this.pendingApprovalCount ? this.pendingApprovalCount : parseInt(ConfigHelper.getFromSession(SessionStorageKeys.PendingApprovalCount) || '0')
-    } catch (exception) {
-      return 0
+  private async mounted () {
+    // Initialize LaunchDarkly flags and sync to session storage
+    const user = { 'key': 'sbc-common-components' }
+    this.ldClient = initialize('5db9da115f58e008123cd783', user)
+    this.ldClient.on('ready', () => {
+      ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
+    })
+    if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
+      await this.syncAccounts()
     }
-  }
-
-  @Watch('accountName')
-  private onAccountNameChanged (val: string, oldVal: string): void {
-    ConfigHelper.addToSession(SessionStorageKeys.AccountName, val)
-  }
-
-  @Watch('pendingApprovalCount')
-  private onPendingApprovalCountChanged (val: number, oldVal: number): void {
-    ConfigHelper.addToSession(SessionStorageKeys.PendingApprovalCount, val)
   }
 
   private get username () : string {
@@ -165,16 +178,6 @@ export default class SbcHeader extends Vue {
     return ConfigHelper.getFromSession(SessionStorageKeys.UserAccountType) || 'BCSC'
   }
 
-  private mounted () {
-    // Initialize LaunchDarkly flags and sync to session storage
-    const user = { 'key': 'sbc-common-components' }
-    this.ldClient = initialize('5db9da115f58e008123cd783', user)
-    this.ldClient.on('ready', () => {
-      console.log('It\'s now safe to request feature flags')
-      ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
-    })
-  }
-
   logout () {
     window.location.assign('/cooperatives/auth/signout')
   }
@@ -187,11 +190,11 @@ export default class SbcHeader extends Vue {
     window.location.assign('/cooperatives/auth/userprofile')
   }
 
-  private goToAccountSettings () {
-    window.location.assign('/cooperatives/auth/accountsettings')
+  private goToAccountInfo () {
+    window.location.assign('/cooperatives/auth/account-settings/account-info')
   }
 
-  private goToTeamManagement () {
+  private goToTeamMembers () {
     window.location.assign('/cooperatives/auth/account-settings/team-members')
   }
 }

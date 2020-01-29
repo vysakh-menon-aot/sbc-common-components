@@ -1,7 +1,7 @@
 import Axios from 'axios'
 import { Fee, FilingData, PayData } from '../models'
-import ConfigHelper from '@/util/config-helper'
-import { SessionStorageKeys } from '@/util/constants'
+import ConfigHelper from '../util/config-helper'
+import { SessionStorageKeys } from '../util/constants'
 
 // sample Microcks URLs =
 //   https://mock-lear-tools.pathfinder.gov.bc.ca/rest/SBC+Pay+API+Reference/1.0.1/api/v1/fees/CP/OTANN
