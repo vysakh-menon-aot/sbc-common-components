@@ -13,7 +13,7 @@ jest.mock('axios', () => ({
 const API_URL = 'https://status-api-dev.pathfinder.gov.bc.ca/api/v1'
 
 describe('get status for payment service', () => {
-  const results = []
+  const results: any = []
   const mockAxiosSpreadResult = jest.fn()
   var serviceName = 'PAYBC'
   beforeAll(() => {
@@ -23,7 +23,7 @@ describe('get status for payment service', () => {
     Axios.all.mockResolvedValue(results)
     // @ts-ignore
     Axios.spread.mockReturnValue(mockAxiosSpreadResult)
-    StatusServices.getServiceStatus(serviceName, API_URL)
+    StatusServices.getServiceStatus(serviceName)
   })
 
   it('should call Axios.get once for status ', () => {
