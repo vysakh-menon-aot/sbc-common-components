@@ -1,7 +1,7 @@
 <template>
   <header class="app-header">
     <div class="container">
-      <a href="/cooperatives/" class="brand">
+      <a @click="goToHome()" class="brand">
         <picture>
           <source media="(min-width: 601px)"
             srcset="../assets/img/gov_bc_logo_horiz.png">
@@ -87,7 +87,7 @@
 
           <v-list tile dense v-if="accountType !== 'IDIR'">
             <v-subheader>ACCOUNT SETTINGS</v-subheader>
-            <v-list-item @click="goToAccountInfo()">
+            <v-list-item @click="goToAccountInfo(currentAccount)">
               <v-list-item-icon left>
                 <v-icon>mdi-information-outline</v-icon>
               </v-list-item-icon>
@@ -99,8 +99,20 @@
               </v-list-item-icon>
               <v-list-item-title>Team Members</v-list-item-title>
             </v-list-item>
-            <v-list-item v-if="showAccountSwitching">HIDE ME</v-list-item>
           </v-list>
+
+          <v-divider></v-divider>
+
+          <v-list tile dense v-if="accountType !== 'IDIR' && switchableAccounts.length > 0">
+            <v-subheader>SWITCH ACCOUNT</v-subheader>
+            <v-list-item @click="switchAccount(settings)" v-for="(settings, id) in switchableAccounts" :key="id">
+              <v-list-item-icon left>
+                <v-icon>mdi-account-switch</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>{{ settings.label }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+
         </v-menu>
       </div>
     </div>
@@ -108,37 +120,37 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Watch } from 'vue-property-decorator'
-import Vue from 'vue'
-import { integer } from 'vuelidate/lib/validators'
+import { Component, Mixins } from 'vue-property-decorator'
 import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
 import ConfigHelper from '../util/config-helper'
 import { SessionStorageKeys } from '../util/constants'
-import { mapState, mapActions } from 'vuex'
-import { Account } from '../models/account'
+import { mapActions, mapState } from 'vuex'
 import { getModule } from 'vuex-module-decorators'
 import AccountModule from '../store/modules/account'
 import store from '../store'
-import { Member } from '../models/member'
+import { UserSettings } from '../models/userSettings'
+import Vue from 'vue'
+import NavigationMixin from '../mixins/navigation-mixin'
 
 @Component({
   beforeCreate () {
     this.$store = store
   },
   computed: {
-    ...mapState('account', ['accounts', 'currentAccount', 'pendingApprovalCount'])
+    ...mapState('account', ['userSettings', 'currentAccount', 'pendingApprovalCount'])
   },
   methods: {
-    ...mapActions('account', ['syncAccounts'])
+    ...mapActions('account', ['syncUserSettings', 'syncCurrentAccount'])
   }
 })
-export default class SbcHeader extends Vue {
+export default class SbcHeader extends NavigationMixin {
   private ldClient!: LDClient
   private accountStoreModule = getModule<AccountModule>(AccountModule, store)
-  private readonly accounts!: Account[]
-  private readonly currentAccount!: Account
+  private readonly userSettings!: UserSettings[]
+  private readonly currentAccount!: UserSettings
   private readonly pendingApprovalCount!: number;
-  private readonly syncAccounts!: () => Promise<Account[]>
+  private readonly syncUserSettings!: (currentAccountId: string) => Promise<UserSettings[]>
+  private readonly syncCurrentAccount!: (settings: UserSettings) => Promise<UserSettings>
 
   get showAccountSwitching (): boolean {
     try {
@@ -149,8 +161,19 @@ export default class SbcHeader extends Vue {
     }
   }
 
+  get switchableAccounts () {
+    return this.userSettings &&
+            this.userSettings
+              .filter(userSettings => (userSettings.type === 'ACCOUNT' &&
+                                       userSettings.label !== (this.currentAccount && this.currentAccount.label)))
+  }
+
   private get accountName (): string {
-    return this.currentAccount && this.currentAccount.name
+    return (this.currentAccount && this.currentAccount.label) || ' '
+  }
+
+  private get accountId (): string {
+    return this.currentAccount && this.currentAccount.id
   }
 
   private async mounted () {
@@ -160,13 +183,39 @@ export default class SbcHeader extends Vue {
     this.ldClient.on('ready', () => {
       ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
     })
+
     if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
-      await this.syncAccounts()
+      const lastUsedAccount = this.getLastAccountId()
+      await this.syncUserSettings(lastUsedAccount)
+      this.persistAndEmitAccountId()
     }
   }
 
-  private get username () : string {
+  private persistAndEmitAccountId () {
+    if (this.currentAccount) {
+      ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(this.currentAccount))
+      this.$root.$emit('accountSyncReady', this.currentAccount)
+    } else {
+      this.$root.$emit('accountSyncReady')
+    }
+  }
+
+  private get username (): string {
     return ConfigHelper.getFromSession(SessionStorageKeys.UserFullName) || '-'
+  }
+
+  /**
+   * Check if the url has an account Id as a URL param -> if so ,that's the CurrentAccount.id
+   * else check if there is a session storage value -> if so , thats CurrentAccount.id
+   * else no current account is present
+   */
+  private getLastAccountId () : string {
+    let pathList = window.location.pathname.split('/')
+    let indexOfAccount = pathList.indexOf('account')
+    let nextValAfterAccount = indexOfAccount > 0 ? pathList[indexOfAccount + 1] : ''
+    let orgIdFromUrl = isNaN(+nextValAfterAccount) ? '' : nextValAfterAccount
+    const storageAccountId = JSON.parse(ConfigHelper.getFromSession(SessionStorageKeys.CurrentAccount) || '{}').id
+    return orgIdFromUrl || String(storageAccountId || '') || ''
   }
 
   private get authorized (): boolean {
@@ -179,23 +228,43 @@ export default class SbcHeader extends Vue {
   }
 
   logout () {
-    window.location.assign('/cooperatives/auth/signout')
+    this.navigateTo(ConfigHelper.getAuthContextPath(), '/signout')
   }
 
   login () {
-    window.location.assign('/cooperatives/auth/signin/bcsc')
+    this.navigateTo(ConfigHelper.getAuthContextPath(), '/signin/bcsc')
+  }
+
+  private goToHome () {
+    this.navigateTo(ConfigHelper.getAuthContextPath(), '/home')
   }
 
   private goToUserProfile () {
-    window.location.assign('/cooperatives/auth/userprofile')
+    this.navigateTo(ConfigHelper.getAuthContextPath(), '/userprofile')
   }
 
-  private goToAccountInfo () {
-    window.location.assign('/cooperatives/auth/account-settings/account-info')
+  private async goToAccountInfo (settings: UserSettings) {
+    await this.syncCurrentAccount(settings)
+    ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(settings))
+    this.navigateTo(ConfigHelper.getAuthContextPath(), settings.urlpath)
   }
 
   private goToTeamMembers () {
-    window.location.assign('/cooperatives/auth/account-settings/team-members')
+    this.navigateTo(ConfigHelper.getAuthContextPath(), `/account/${this.currentAccount.id}/settings/team-members`)
+  }
+
+  private async switchAccount (settings: UserSettings) {
+    this.$root.$emit('accountSyncStarted')
+    await this.syncCurrentAccount(settings)
+    this.persistAndEmitAccountId()
+
+    // Navigate to the same current route if in auth-web
+    if (!window.location.pathname.startsWith(ConfigHelper.getAuthContextPath())) {
+      this.navigateTo(ConfigHelper.getAuthContextPath(), '/home')
+    } else if (this.$route.params['orgId']) {
+      // If route includes a URL param for account, we need to refresh
+      this.$router.push({ name: this.$route.name, params: { orgId: this.currentAccount.id } })
+    }
   }
 }
 </script>

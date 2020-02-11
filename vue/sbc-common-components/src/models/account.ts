@@ -1,4 +1,3 @@
-import { Member } from './member';
 
 export interface Account {
   id: number

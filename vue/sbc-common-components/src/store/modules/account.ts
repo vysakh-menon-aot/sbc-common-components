@@ -1,30 +1,30 @@
-import { Module, VuexModule, Action, Mutation } from 'vuex-module-decorators'
+import { Action, Module, Mutation, VuexModule } from 'vuex-module-decorators'
 import AccountService from '../../services/account.services'
-import { Account } from '../../models/account'
 import { Member } from '../../models/member'
+import { UserSettings } from '../../models/userSettings'
 
 @Module({
   name: 'account',
   namespaced: true
 })
 export default class AccountModule extends VuexModule {
-  accounts: Account[] = []
-  currentAccount: Account | null = null
+  userSettings: UserSettings[] = []
+  currentAccount: UserSettings | null = null
   currentAccountMembership: Member | null = null
   pendingApprovalCount = 0
 
   get accountName () {
-    return this.currentAccount && this.currentAccount.name
+    return this.currentAccount && this.currentAccount.label
   }
 
   @Mutation
-  public setAccounts (accounts: Account[]): void {
-    this.accounts = accounts
+  public setUserSettings (userSetting: UserSettings[]): void {
+    this.userSettings = userSetting
   }
 
   @Mutation
-  public setCurrentAccount (account: Account): void {
-    this.currentAccount = account
+  public setCurrentAccount (userSetting: UserSettings): void {
+    this.currentAccount = userSetting
   }
 
   @Mutation
@@ -37,17 +37,19 @@ export default class AccountModule extends VuexModule {
     this.currentAccountMembership = membership
   }
 
-  @Action({ rawError: true, commit: 'setAccounts' })
-  public async syncAccounts (): Promise<Account[]> {
-    const response = await AccountService.getAccounts()
-    if (response && response.data && response.data.orgs && response.data.orgs.length > 0) {
-      this.context.commit('setCurrentAccount', response.data.orgs[0])
+  @Action({ rawError: true, commit: 'setUserSettings' })
+  public async syncUserSettings (currentAccountId: string): Promise<UserSettings[]> {
+    const response = await AccountService.getUserSettings()
+    if (response && response.data) {
+      const orgs = response.data.filter(userSettings => (userSettings.type === 'ACCOUNT'))
+      this.context.commit('setCurrentAccount', currentAccountId ? orgs.find(org => String(org.id) === currentAccountId) : orgs[0])
       const membership: Member = await this.context.dispatch('fetchCurrentAccountMembership')
       if (membership && membership.membershipStatus === 'ACTIVE' && membership.membershipType !== 'MEMBER') {
         await this.context.dispatch('fetchPendingApprovalCount')
       }
+      return orgs
     }
-    return (response && response.data && response.data.orgs) || []
+    return []
   }
 
   @Action({ rawError: true, commit: 'setPendingApprovalCount' })
@@ -59,8 +61,16 @@ export default class AccountModule extends VuexModule {
 
   @Action({ rawError: true, commit: 'setCurrentAccountMembership' })
   public async fetchCurrentAccountMembership (): Promise<Member> {
-    const response = await AccountService.getMembership(this.context.rootState.account.currentAccount &&
-      this.context.rootState.account.currentAccount.id)
-    return response && response.data
+    if (this.context.rootState.account.currentAccount) {
+      const response = await AccountService.getMembership(this.context.rootState.account.currentAccount &&
+        this.context.rootState.account.currentAccount.id)
+      return response && response.data
+    }
+    return null
+  }
+
+  @Action({ rawError: true, commit: 'setCurrentAccount' })
+  public async syncCurrentAccount (userSetting:UserSettings): Promise<UserSettings> {
+    return userSetting
   }
 }
