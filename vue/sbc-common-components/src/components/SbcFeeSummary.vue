@@ -24,21 +24,21 @@
           v-if="lineItem.priorityFees"
           :key="lineItem.filingType+'-priority'"
           >
-          <div class="fee-list__item-name">Priority Fee</div>
+          <div class="fee-list__item-name pl-3">Priority Fee</div>
           <div class="fee-list__item-value">{{lineItem.priorityFees | currency}}</div>
         </li>
         <li class="container fee-list__item"
           v-if="lineItem.futureEffectiveFees"
           :key="lineItem.filingType+'-futureEffective'"
           >
-          <div class="fee-list__item-name">Future Effective Fee</div>
+          <div class="fee-list__item-name pl-3">Future Effective Fee</div>
           <div class="fee-list__item-value">{{lineItem.futureEffectiveFees | currency}}</div>
         </li>
         <li class="container fee-list__item"
           v-if="lineItem.serviceFees"
           :key="lineItem.filingType+'-transaction'"
           >
-          <div class="fee-list__item-name">Transaction Fee</div>
+          <div class="fee-list__item-name pl-3">Transaction Fee</div>
           <div class="fee-list__item-value">{{lineItem.serviceFees | currency}}</div>
         </li>
       </template>
@@ -71,12 +71,6 @@ export default class SbcFeeSummary extends Vue {
   @Prop({ default: '' })
   private payURL!: string
 
-  @Prop({ default: false })
-  private priority!: boolean
-
-  @Prop({ default: false })
-  private futureEffective!: boolean
-
   /* class properties */
   private fees: Fee[] = []
   private fetchError: string = ''
@@ -86,7 +80,7 @@ export default class SbcFeeSummary extends Vue {
     // console.log('%c FeeModule-Data Received on Mount as %s %s', 'color: blue; font-size: 12px',
     //   JSON.stringify(this.filingData), this.payURL)
 
-    FeeServices.getFee(this.filingData, this.payURL, this.priority, this.futureEffective)
+    FeeServices.getFee(this.filingData, this.payURL)
       .then(data => {
         this.fetchError = ''
         this.fees = data
@@ -108,7 +102,7 @@ export default class SbcFeeSummary extends Vue {
     // console.log('%c FeeModule-Watch Activated as %s', 'color: blue; font-size: 12px',
     //   JSON.stringify(this.filingData))
 
-    FeeServices.getFee(this.filingData, this.payURL, this.priority, this.futureEffective).then((data: any) => {
+    FeeServices.getFee(this.filingData, this.payURL).then((data: any) => {
       this.fetchError = ''
       this.fees = data
       this.emitTotalFee(this.totalFilingFees)

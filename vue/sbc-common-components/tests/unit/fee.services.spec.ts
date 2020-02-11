@@ -15,7 +15,7 @@ const API_URL = 'https://pay-api-dev.pathfinder.gov.bc.ca/api/v1/'
 describe('with 1 fee in the list', () => {
   const results = []
   const mockAxiosSpreadResult = jest.fn()
-  var filingCodes = [{ filingDescription: 'Annual Filing', filingTypeCode: 'OTANN', waiveFees: false, entityType: 'CP' }]
+  var filingCodes = [{ filingDescription: 'Annual Filing', filingTypeCode: 'OTANN', waiveFees: false, entityType: 'CP', priority: false, futureEffective: false }]
   beforeAll(() => {
     // @ts-ignore
     Axios.get.mockClear()
@@ -27,14 +27,17 @@ describe('with 1 fee in the list', () => {
   })
 
   it('should call Axios.get once for each Fee ', () => {
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN?waiveFees=false`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
   })
 })
 
 describe('with 2 fee in the list', () => {
   const results = []
   const mockAxiosSpreadResult = jest.fn()
-  var filingCodes = [{ filingDescription: 'Annual Filing', filingTypeCode: 'OTANN', entityType: 'CP', waiveFees: false }, { filingDescription: 'Director Change', filingTypeCode: 'OTADD', entityType: 'CP', waiveFees: false }]
+  var filingCodes = [
+    { filingDescription: 'Annual Filing', filingTypeCode: 'OTANN', entityType: 'CP', waiveFees: false, priority: false, futureEffective: false },
+    { filingDescription: 'Director Change', filingTypeCode: 'OTADD', entityType: 'CP', waiveFees: false, priority: false, futureEffective: false }
+  ]
   beforeAll(() => {
     // @ts-ignore
     Axios.get.mockClear()
@@ -42,11 +45,30 @@ describe('with 2 fee in the list', () => {
     Axios.all.mockResolvedValue(results)
     // @ts-ignore
     Axios.spread.mockReturnValue(mockAxiosSpreadResult)
+    FeeServices.getFee(filingCodes, API_URL)
   })
 
-  it('should call Axios.get once for each student with name', () => {
+  it('should call Axios.get once for each filing code', () => {
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTADD`, { 'headers': { 'Authorization': 'Bearer null' } })
+  })
+})
+
+describe('with 1 fee in the list with extra fees', () => {
+  const results = []
+  const mockAxiosSpreadResult = jest.fn()
+  var filingCodes = [{ filingTypeCode: 'BCRSF', waiveFees: false, entityType: 'BC', priority: true, futureEffective: true }]
+  beforeAll(() => {
+    // @ts-ignore
+    Axios.get.mockClear()
+    // @ts-ignore
+    Axios.all.mockResolvedValue(results)
+    // @ts-ignore
+    Axios.spread.mockReturnValue(mockAxiosSpreadResult)
     FeeServices.getFee(filingCodes, API_URL)
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN?waiveFees=false`, { 'headers': { 'Authorization': 'Bearer null' } })
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTADD?waiveFees=false`, { 'headers': { 'Authorization': 'Bearer null' } })
+  })
+
+  it('should call Axios.get once with extra fee parameters ', () => {
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/BC/BCRSF?priority=true&futureEffective=true`, { 'headers': { 'Authorization': 'Bearer null' } })
   })
 })

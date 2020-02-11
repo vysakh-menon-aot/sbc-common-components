@@ -9,7 +9,7 @@ import { SessionStorageKeys } from '../util/constants'
 const API_URL = 'https://pay-api-dev.pathfinder.gov.bc.ca/api/v1/fees'
 
 export default {
-  getFee (filingData: FilingData[], payApiUrl: string, priority: boolean, futureEffective: boolean) : Promise<Fee[]> {
+  getFee (filingData: FilingData[], payApiUrl: string) : Promise<Fee[]> {
     const token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
 
     if (filingData.length < 1) {
@@ -21,7 +21,7 @@ export default {
       if (!filing.filingTypeCode) {
         Promise.resolve()
       }
-      const url = `${payApiUrl}fees/${filing.entityType}/${filing.filingTypeCode}?waiveFees=${!!filing.waiveFees}&priority=${!!priority}&futureEffective=${!!futureEffective}`
+      let url = prepareUrl(filing, payApiUrl)
       promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}` } }))
     }
 
@@ -63,4 +63,22 @@ export default {
         return []
       })
   }
+}
+
+const prepareUrl = (filing: FilingData, payApiUrl: string) => {
+  let queryParams = []
+  if (filing.waiveFees) {
+    queryParams.push(`waiveFees=${!!filing.waiveFees}`)
+  }
+  if (filing.priority) {
+    queryParams.push(`priority=${!!filing.priority}`)
+  }
+  if (filing.futureEffective) {
+    queryParams.push(`futureEffective=${!!filing.futureEffective}`)
+  }
+  let url = `${payApiUrl}fees/${filing.entityType}/${filing.filingTypeCode}`
+  if (queryParams.length) {
+    url += `?${queryParams.join('&')}`
+  }
+  return url
 }
