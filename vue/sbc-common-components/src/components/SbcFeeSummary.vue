@@ -25,8 +25,7 @@
           :key="lineItem.filingType+'-priority'"
           >
           <div class="fee-list__item-name">Priority Fee</div>
-          <!-- <div class="fee-list__item-value">{{lineItem.priorityFees | currency}}</div> -->
-          <div class="fee-list__item-value">{{lineItem.priorityFees}}</div>
+          <div class="fee-list__item-value">{{lineItem.priorityFees | currency}}</div>
         </li>
         <li class="container fee-list__item"
           v-if="lineItem.futureEffectiveFees"
@@ -39,7 +38,7 @@
           v-if="lineItem.serviceFees"
           :key="lineItem.filingType+'-transaction'"
           >
-          <div class="fee-list__item-name">Transaction Fees</div>
+          <div class="fee-list__item-name">Transaction Fee</div>
           <div class="fee-list__item-value">{{lineItem.serviceFees | currency}}</div>
         </li>
       </template>
