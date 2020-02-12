@@ -107,7 +107,7 @@
             <v-subheader>SWITCH ACCOUNT</v-subheader>
             <v-list-item @click="switchAccount(settings)" v-for="(settings, id) in switchableAccounts" :key="id">
               <v-list-item-icon left>
-                <v-icon small v-show="settings.id === currentAccount.id">mdi-check</v-icon>
+                <v-icon v-show="settings.id === currentAccount.id">mdi-check</v-icon>
               </v-list-item-icon>
               <v-list-item-title>{{ settings.label }}</v-list-item-title>
             </v-list-item>
