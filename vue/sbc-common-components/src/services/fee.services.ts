@@ -44,7 +44,7 @@ export default {
           })
       }))
       .catch(error => {
-        switch (error.response.status) {
+        switch (error.response && error.response.status) {
           case 400:
             // eslint-disable-next-line no-console
             console.log('%c FeeModule-ERROR: Probably fee code mismatch %s', 'color: red; font-size: 13px',
