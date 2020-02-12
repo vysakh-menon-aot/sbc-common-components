@@ -10,4 +10,10 @@ export interface FilingData {
 
   // A flag to specify whether to waive the fees.
   waiveFees: boolean
+
+  // A flag to specify whether to get priority fee.
+  priority: boolean
+
+  // A flag to specify whether to get future effective fee.
+  futureEffective: boolean
 }

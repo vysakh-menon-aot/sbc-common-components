@@ -21,7 +21,7 @@ export default {
       if (!filing.filingTypeCode) {
         Promise.resolve()
       }
-      const url = `${payApiUrl}fees/${filing.entityType}/${filing.filingTypeCode}?waiveFees=${!!filing.waiveFees}`
+      let url = prepareUrl(filing, payApiUrl)
       promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}` } }))
     }
 
@@ -36,7 +36,11 @@ export default {
             const filingType = (filingDatum && filingDatum.filingDescription) ? filingDatum.filingDescription : data.filingType
             // total fees is a sum of filingFees,serviceFees,processingFees , gst , pst
             const fee = data.filingFees + data.serviceFees + data.processingFees + data.tax.gst + data.tax.pst
-            return { fee, filingType } as Fee
+            const priorityFees = (data.priorityFees) || 0
+            const futureEffectiveFees = (data.futureEffectiveFees) || 0
+            const serviceFees = (data.serviceFees) || 0
+            const total = (data.total) || 0
+            return { fee, filingType, priorityFees, futureEffectiveFees, serviceFees, total } as Fee
           })
       }))
       .catch(error => {
@@ -59,4 +63,22 @@ export default {
         return []
       })
   }
+}
+
+const prepareUrl = (filing: FilingData, payApiUrl: string) => {
+  let queryParams = []
+  if (filing.waiveFees) {
+    queryParams.push(`waiveFees=${!!filing.waiveFees}`)
+  }
+  if (filing.priority) {
+    queryParams.push(`priority=${!!filing.priority}`)
+  }
+  if (filing.futureEffective) {
+    queryParams.push(`futureEffective=${!!filing.futureEffective}`)
+  }
+  let url = `${payApiUrl}fees/${filing.entityType}/${filing.filingTypeCode}`
+  if (queryParams.length) {
+    url += `?${queryParams.join('&')}`
+  }
+  return url
 }

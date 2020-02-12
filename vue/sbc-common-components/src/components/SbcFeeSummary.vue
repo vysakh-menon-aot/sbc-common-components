@@ -9,15 +9,39 @@
     </div>
 
     <v-slide-y-transition group tag="ul" class="fee-list" v-show="!fetchError">
-      <li class="container fee-list__item"
+      <template
         v-show="(totalFilingFees > 0 && lineItem.fee) || (totalFilingFees == 0)"
         v-for="lineItem in fees"
-        :key="lineItem.filingType"
-      >
-        <div class="fee-list__item-name">{{lineItem.filingType}}</div>
-        <div class="fee-list__item-value" v-if="lineItem.fee > 0">{{lineItem.fee | currency}}</div>
-        <div class="fee-list__item-value" v-else>No Fee</div>
-      </li>
+        >
+        <li class="container fee-list__item"
+          :key="lineItem.filingType"
+          >
+          <div class="fee-list__item-name">{{lineItem.filingType}}</div>
+          <div class="fee-list__item-value" v-if="lineItem.fee > 0">{{lineItem.fee | currency}}</div>
+          <div class="fee-list__item-value" v-else>No Fee</div>
+        </li>
+        <li class="container fee-list__item"
+          v-if="lineItem.priorityFees"
+          :key="lineItem.filingType+'-priority'"
+          >
+          <div class="fee-list__item-name pl-3">Priority Fee</div>
+          <div class="fee-list__item-value">{{lineItem.priorityFees | currency}}</div>
+        </li>
+        <li class="container fee-list__item"
+          v-if="lineItem.futureEffectiveFees"
+          :key="lineItem.filingType+'-futureEffective'"
+          >
+          <div class="fee-list__item-name pl-3">Future Effective Fee</div>
+          <div class="fee-list__item-value">{{lineItem.futureEffectiveFees | currency}}</div>
+        </li>
+        <li class="container fee-list__item"
+          v-if="lineItem.serviceFees"
+          :key="lineItem.filingType+'-transaction'"
+          >
+          <div class="fee-list__item-name pl-3">Transaction Fee</div>
+          <div class="fee-list__item-value">{{lineItem.serviceFees | currency}}</div>
+        </li>
+      </template>
     </v-slide-y-transition>
 
     <div class="container fee-total" v-show="!fetchError">
@@ -69,7 +93,7 @@ export default class SbcFeeSummary extends Vue {
 
   /* getter */
   private get totalFilingFees (): number {
-    return this.fees.reduce((acc: number, item: { fee: number }) => acc + item.fee, 0)
+    return this.fees.reduce((acc: number, item: Fee) => acc + item.total, 0)
   }
 
   /* watcher */
