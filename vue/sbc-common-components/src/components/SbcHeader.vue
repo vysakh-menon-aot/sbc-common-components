@@ -107,7 +107,7 @@
             <v-subheader>SWITCH ACCOUNT</v-subheader>
             <v-list-item @click="switchAccount(settings)" v-for="(settings, id) in switchableAccounts" :key="id">
               <v-list-item-icon left>
-                <v-icon>mdi-account-switch</v-icon>
+                <v-icon small v-show="settings.id === currentAccount.id">mdi-check</v-icon>
               </v-list-item-icon>
               <v-list-item-title>{{ settings.label }}</v-list-item-title>
             </v-list-item>
@@ -162,10 +162,7 @@ export default class SbcHeader extends NavigationMixin {
   }
 
   get switchableAccounts () {
-    return this.userSettings &&
-            this.userSettings
-              .filter(userSettings => (userSettings.type === 'ACCOUNT' &&
-                                       userSettings.label !== (this.currentAccount && this.currentAccount.label)))
+    return this.userSettings && this.userSettings.filter(setting => setting.type === 'ACCOUNT')
   }
 
   private get accountName (): string {
