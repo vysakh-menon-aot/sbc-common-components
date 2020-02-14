@@ -103,7 +103,7 @@
 
           <v-divider></v-divider>
 
-          <v-list tile dense v-if="accountType !== 'IDIR' && switchableAccounts.length > 0">
+          <v-list tile dense v-if="accountType !== 'IDIR' && switchableAccounts.length > 1">
             <v-subheader>SWITCH ACCOUNT</v-subheader>
             <v-list-item @click="switchAccount(settings)" v-for="(settings, id) in switchableAccounts" :key="id">
               <v-list-item-icon left>
