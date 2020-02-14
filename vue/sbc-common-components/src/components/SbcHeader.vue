@@ -120,7 +120,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins } from 'vue-property-decorator'
+import { Component, Mixins, Prop } from 'vue-property-decorator'
 import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
 import ConfigHelper from '../util/config-helper'
 import { SessionStorageKeys } from '../util/constants'
@@ -151,6 +151,9 @@ export default class SbcHeader extends NavigationMixin {
   private readonly pendingApprovalCount!: number;
   private readonly syncUserSettings!: (currentAccountId: string) => Promise<UserSettings[]>
   private readonly syncCurrentAccount!: (settings: UserSettings) => Promise<UserSettings>
+  @Prop({ default: '' }) redirectOnLoginSuccess!: string;
+  @Prop({ default: '' }) redirectOnLoginFail!: string;
+  @Prop({ default: '' }) redirectOnLogout!: string;
 
   get showAccountSwitching (): boolean {
     try {
@@ -225,11 +228,28 @@ export default class SbcHeader extends NavigationMixin {
   }
 
   logout () {
-    this.navigateTo(ConfigHelper.getAuthContextPath(), '/signout')
+    if (this.redirectOnLogout) {
+      const url = encodeURIComponent(this.redirectOnLogout)
+      this.navigateTo(
+        ConfigHelper.getAuthContextPath(),
+        `/signout/${url}`
+      )
+    } else {
+      this.navigateTo(ConfigHelper.getAuthContextPath(), '/signout')
+    }
   }
 
   login () {
-    this.navigateTo(ConfigHelper.getAuthContextPath(), '/signin/bcsc')
+    if (this.redirectOnLoginSuccess) {
+      let url = encodeURIComponent(this.redirectOnLoginSuccess)
+      url += this.redirectOnLoginFail ? `/${encodeURIComponent(this.redirectOnLoginFail)}` : ''
+      this.navigateTo(
+        ConfigHelper.getAuthContextPath(),
+        `/signin/bcsc/${url}`
+      )
+    } else {
+      this.navigateTo(ConfigHelper.getAuthContextPath(), '/signin/bcsc')
+    }
   }
 
   private goToHome () {
