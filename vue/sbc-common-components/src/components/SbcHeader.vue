@@ -230,12 +230,9 @@ export default class SbcHeader extends NavigationMixin {
   logout () {
     if (this.redirectOnLogout) {
       const url = encodeURIComponent(this.redirectOnLogout)
-      this.navigateTo(
-        ConfigHelper.getAuthContextPath(),
-        `/signout/${url}`
-      )
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}${url}`)
     } else {
-      this.navigateTo(ConfigHelper.getAuthContextPath(), '/signout')
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}signout`)
     }
   }
 
@@ -243,21 +240,18 @@ export default class SbcHeader extends NavigationMixin {
     if (this.redirectOnLoginSuccess) {
       let url = encodeURIComponent(this.redirectOnLoginSuccess)
       url += this.redirectOnLoginFail ? `/${encodeURIComponent(this.redirectOnLoginFail)}` : ''
-      this.navigateTo(
-        ConfigHelper.getAuthContextPath(),
-        `/signin/bcsc/${url}`
-      )
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}${url}`)
     } else {
-      this.navigateTo(ConfigHelper.getAuthContextPath(), '/signin/bcsc')
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}signin/bcsc`)
     }
   }
 
   private goToHome () {
-    this.navigateTo(ConfigHelper.getAuthContextPath(), '/home')
+    window.location.assign(`${ConfigHelper.getAuthContextPath()}home`)
   }
 
   private goToUserProfile () {
-    this.navigateTo(ConfigHelper.getAuthContextPath(), '/userprofile')
+    window.location.assign(`${ConfigHelper.getAuthContextPath()}userprofile`)
   }
 
   private async goToAccountInfo (settings: UserSettings) {
