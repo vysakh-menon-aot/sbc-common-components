@@ -230,7 +230,7 @@ export default class SbcHeader extends NavigationMixin {
   logout () {
     if (this.redirectOnLogout) {
       const url = encodeURIComponent(this.redirectOnLogout)
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}${url}`)
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}signout/${url}`)
     } else {
       window.location.assign(`${ConfigHelper.getAuthContextPath()}signout`)
     }
@@ -240,7 +240,7 @@ export default class SbcHeader extends NavigationMixin {
     if (this.redirectOnLoginSuccess) {
       let url = encodeURIComponent(this.redirectOnLoginSuccess)
       url += this.redirectOnLoginFail ? `/${encodeURIComponent(this.redirectOnLoginFail)}` : ''
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}${url}`)
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}signin/bcsc/${url}`)
     } else {
       window.location.assign(`${ConfigHelper.getAuthContextPath()}signin/bcsc`)
     }
