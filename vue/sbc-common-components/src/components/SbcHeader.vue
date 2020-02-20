@@ -287,9 +287,7 @@ export default class SbcHeader extends NavigationMixin {
     this.persistAndEmitAccountId()
 
     // Navigate to the same current route if in auth-web
-    if (!window.location.pathname.startsWith(ConfigHelper.getAuthContextPath())) {
-      this.navigateTo(ConfigHelper.getAuthContextPath(), '/home')
-    } else if (this.$route.params['orgId']) {
+    if (this.$route.params['orgId']) {
       // If route includes a URL param for account, we need to refresh
       this.$router.push({ name: this.$route.name, params: { orgId: this.currentAccount.id } })
     }
