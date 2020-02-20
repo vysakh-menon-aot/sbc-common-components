@@ -291,6 +291,10 @@ export default class SbcHeader extends NavigationMixin {
       // If route includes a URL param for account, we need to refresh
       this.$router.push({ name: this.$route.name, params: { orgId: this.currentAccount.id } })
     }
+
+    if (!this.inAuth) {
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}home`)
+    }
   }
 }
 </script>
