@@ -154,6 +154,7 @@ export default class SbcHeader extends NavigationMixin {
   @Prop({ default: '' }) redirectOnLoginSuccess!: string;
   @Prop({ default: '' }) redirectOnLoginFail!: string;
   @Prop({ default: '' }) redirectOnLogout!: string;
+  @Prop({ default: false }) inAuth!: boolean;
 
   get showAccountSwitching (): boolean {
     try {
@@ -247,21 +248,37 @@ export default class SbcHeader extends NavigationMixin {
   }
 
   private goToHome () {
-    window.location.assign(`${ConfigHelper.getAuthContextPath()}home`)
+    if (this.inAuth) {
+      this.navigateTo(ConfigHelper.getAuthContextPath(), '/home')
+    } else {
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}home`)
+    }
   }
 
   private goToUserProfile () {
-    window.location.assign(`${ConfigHelper.getAuthContextPath()}userprofile`)
+    if (this.inAuth) {
+      this.navigateTo(ConfigHelper.getAuthContextPath(), '/userprofile')
+    } else {
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}userprofile`)
+    }
   }
 
   private async goToAccountInfo (settings: UserSettings) {
     await this.syncCurrentAccount(settings)
     ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(settings))
-    this.navigateTo(ConfigHelper.getAuthContextPath(), settings.urlpath)
+    if (this.inAuth) {
+      this.navigateTo(ConfigHelper.getAuthContextPath(), `/account/${this.currentAccount.id}/settings/account-info`)
+    } else {
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}account/${this.currentAccount.id}/settings/account-info`)
+    }
   }
 
   private goToTeamMembers () {
-    this.navigateTo(ConfigHelper.getAuthContextPath(), `/account/${this.currentAccount.id}/settings/team-members`)
+    if (this.inAuth) {
+      this.navigateTo(ConfigHelper.getAuthContextPath(), `/account/${this.currentAccount.id}/settings/team-members`)
+    } else {
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}account/${this.currentAccount.id}/settings/team-members`)
+    }
   }
 
   private async switchAccount (settings: UserSettings) {
