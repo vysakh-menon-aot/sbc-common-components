@@ -2,7 +2,7 @@
 
 The component is a stand alone fee calculator widget which invokes the fee api and displays the output
 
-As an input , it accepts the filingcode , entity type and an optional filinf description
+As an input , it accepts the filingcode , entity type and an optional filing description
 
 ### Prerequisites
 
@@ -16,7 +16,7 @@ The component accepts a list of Objects which includes filingTypeCode , entityTy
 
 **Sample FilingData object** 
 
-```
+```js
 
   data () {
     return {
@@ -25,7 +25,10 @@ The component accepts a list of Objects which includes filingTypeCode , entityTy
        {
         filingTypeCode: '', //mandatory
         entityType: '', //mandatory
-        filingDescription :''
+        filingDescription :'',
+        waiveFees: false,
+        priority: false, 
+        futureEffective: false,
       }
     }
 
@@ -46,14 +49,17 @@ The component accepts a list of Objects which includes filingTypeCode , entityTy
 
 **How to trigger the change of widget on different filings**
 
-``` vue
+```js
             fileAR: function () {
                  /*do your filing logic here */
  
                  this.feeData = {
                      filingTypeCode: 'OTANN',
                      entityType: 'CP',
-                     filingDescription: ''
+                     filingDescription: '',
+                     waiveFees: false,
+                     priority: false, 
+                     futureEffective: false,
                  };
  
              },
@@ -64,22 +70,30 @@ The component accepts a list of Objects which includes filingTypeCode , entityTy
              },
              fileARandDirectorChangeAndAdress: function () {
                  /*do your filing logic here */
-                 this.feeData = [{
-                     filingTypeCode: 'OTANN',
-                     entityType: 'CP',
-                     filingDescription: 'COPS Annual Fee'
-                 },
-                     {
-                         filingTypeCode: 'OTADD',
-                         entityType: 'CP',
-                         filingDescription: 'Director Change Fee'
-                     },
-                     {
-                         filingTypeCode: 'OTAOAD',
-                         entityType: 'CP',
-                         filingDescription: 'Address'
-                     }
-                 ]
+                this.feeData = [{
+                    filingTypeCode: 'OTANN',
+                    entityType: 'CP',
+                    filingDescription: 'COPS Annual Fee',
+                    waiveFees: false,
+                    priority: false, 
+                    futureEffective: false,
+                },
+                {
+                    filingTypeCode: 'OTADD',
+                    entityType: 'CP',
+                    filingDescription: 'Director Change Fee',
+                    waiveFees: false,
+                    priority: true, 
+                    futureEffective: false,
+                },
+                {
+                    filingTypeCode: 'OTAOAD',
+                    entityType: 'CP',
+                    filingDescription: 'Address',
+                    waiveFees: false,
+                    priority: false, 
+                    futureEffective: true,
+                }]
              },
    ```
     

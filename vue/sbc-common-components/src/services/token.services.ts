@@ -12,7 +12,7 @@ class TokenServices {
     this.kc = kcInstance
   }
 
-  async initUsingUrl (keyCloakConfigurl: string) {
+  async init () {
     const kcOptions: KeycloakInitOptions = {
       onLoad: 'login-required',
       checkLoginIframe: false,
@@ -23,7 +23,7 @@ class TokenServices {
     }
 
     return new Promise((resolve, reject) => {
-      this.kc = Keycloak(keyCloakConfigurl)
+      this.kc = Keycloak(ConfigHelper.getKeycloakConfigUrl())
       this.kc.init(kcOptions)
         .success(authenticated => {
           console.info('[TokenServices] is User Authenticated?: Syncing ' + authenticated)

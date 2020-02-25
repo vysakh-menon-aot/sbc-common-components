@@ -4,21 +4,21 @@ import { mount, createLocalVue } from '@vue/test-utils'
 import Vue from 'vue'
 import Vuetify from 'vuetify'
 import VueRouter from 'vue-router'
+import axios from 'axios'
+import MockAdapter from 'axios-mock-adapter'
+import { SessionStorageKeys } from '@/util/constants'
+
+let mock = new MockAdapter(axios)
 
 Vue.use(Vuetify)
 Vue.use(VueRouter)
-
-jest.mock('axios', () => ({
-  post: jest.fn(() =>
-    Promise.resolve({ data: { access_token: 'abcd', refresh_token: 'efgh', registries_trace_id: '12345abcde' } })
-  )
-}))
 
 describe('SbcHeader.vue', () => {
   let cmp
 
   beforeEach(() => {
-    sessionStorage.setItem('KEYCLOAK_TOKEN', 'abcd')
+    sessionStorage.__STORE__[SessionStorageKeys.KeyCloakToken] = 'abcd'
+    sessionStorage.__STORE__[SessionStorageKeys.UserFullName] = 'Jon Snow'
 
     const localVue = createLocalVue()
     localVue.use(Vuex)
@@ -26,7 +26,8 @@ describe('SbcHeader.vue', () => {
     let vuetify = new Vuetify({})
 
     const store = new Vuex.Store({
-      modules: { logout: {} } })
+      modules: { logout: {} }
+    })
 
     cmp = mount(SBCHeader, {
       store,
@@ -38,16 +39,23 @@ describe('SbcHeader.vue', () => {
     jest.clearAllMocks()
   })
 
-  // Sign in shouldnt exist
-  it('logout/in button exists', () => {
-    expect(cmp.find('.v-btn').text().startsWith('Sign')).toBeTruthy()
+  it('user account btn exists', () => {
+    expect(cmp.find('.user-account-btn')).toBeTruthy()
     expect(cmp.isVueInstance()).toBeTruthy()
+  })
+
+  it('user name exists', () => {
+    expect(cmp.find('.user-name').text().startsWith('Jon')).toBeTruthy()
   })
 
   it('logout/in button click invokes logout method', () => {
     const stub = jest.fn()
     cmp.setMethods({ logout: stub })
-    cmp.find('.v-btn').trigger('click')
+    cmp.find('.user-account-btn').trigger('click')
+    expect(cmp.find('.v-list-item__title')).toBeTruthy()
+    const logoutBtn = cmp.findAll('.v-list-item__title').at(2)
+    expect(logoutBtn.text().startsWith('Log')).toBeTruthy()
+    logoutBtn.trigger('click')
     expect(cmp.vm.logout).toBeCalled()
   })
 })
