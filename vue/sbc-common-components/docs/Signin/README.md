@@ -12,7 +12,7 @@ This component can be used in the signin page.
 
 before using this component, make sure you have set the keycloak config url. Steps for doing that are as follows:
 
-### ***Keycloak Initialization***
+### **Keycloak Initialization**
 
 import in the **App.vue** file
 
@@ -46,7 +46,7 @@ import SbcSignin from 'sbc-common-components/src/components/SbcSignin.vue'
  
 ### **use it in the template**
 
-The component accepts ***idp-hint*** and ***redirect-url-login-fail*** as input props, and outputs two events: ***keycloak-session-ready*** and ***sync-user-profile-ready***
+The component accepts **idp-hint** and **redirect-url-login-fail** as input props, and outputs two events: **keycloak-session-ready** and **sync-user-profile-ready**
 
 ```html
 <template>

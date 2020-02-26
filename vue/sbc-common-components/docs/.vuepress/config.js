@@ -21,6 +21,8 @@ module.exports = {
           '/FeeCalculator/',
           '/BaseAddress/',
           '/TokenService/',
+          '/Signin/',
+          '/Signout/',
         ]
       },
       {
