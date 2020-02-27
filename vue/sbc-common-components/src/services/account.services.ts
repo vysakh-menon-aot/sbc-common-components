@@ -4,7 +4,7 @@ import { Accounts } from '../models/account'
 import { addAxiosInterceptors } from '../util/interceptors'
 import { Members, Member } from '../models/member'
 import { UserSettings } from '../models/userSettings'
-import { SessionStorageKeys } from '@/util/constants'
+import { SessionStorageKeys } from '../util/constants'
 
 const axios = addAxiosInterceptors(Axios.create())
 
