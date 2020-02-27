@@ -13,41 +13,42 @@ It supports two modes for **refreshing the token**
    In this case , it runs a timer [a plain old javascript settimeout] . It calculates the expiry of current keycloak token and schedules a timeout before 2 seconds of expiry
    Since the timers get destroyed on page refresh , execute the logic in start up or when user signs in
    
-   a sample usage
+   A sample usage:
    
    1. Register the compoent in vue
         
-        `Vue.prototype.$tokenServices = new TokenServices()`
-   
-   2. Init the tokenservice so that keycloak service is being set up
-   3. start the timer
+        `private tokenService = new TokenService()`
+  
+   2. Initialize [keycloak config](../Signin/README.md#keycloak-initialization)
+
+   3. Init the tokenservice so that keycloak service is being set up
+
+   4. Start the timer
     
-        ```if (sessionStorage.getItem('KEYCLOAK_TOKEN')) {
-            // eslint-disable-next-line no-console
-            console.info('[APP.vue] Token exists.So start the refreshtimer')
-            var self = this
-            this.$tokenServices.initUsingUrl(`/${process.env.VUE_APP_PATH}/config/kc/keycloak.json`).then(function (success) {
-              self.$tokenServices.scheduleRefreshTimer()
-            })
+        ```js
+        if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
+          await this.tokenService.init()
+          this.tokenService.scheduleRefreshTimer()
+        }
 
          ```
 
 ### One time Refresh 
    
    
-   If a one time refreshal of logic is needed , the service has the method refreshToken() which can be employed.
+  If a one time refreshal of logic is needed, the service has the method refreshToken() which can be employed.
     
-  When KC is initialised using token , the token gets refreshed.So init itself refreshes. The below code will refresh
+  When KC is initialised using token, the token gets refreshed. So init itself refreshes. The below code will refresh
     
-   ```
+   ```js
       let tokenservice = new TokenService()
-            tokenservice.initUsingUrl(`/${process.env.VUE_APP_PATH}/config/kc/keycloak.json`).then(function (token) {
-              originalRequest.headers['Authorization'] = `Bearer ${token}`
-              return axios(originalRequest)
-            }).catch(error => {
-              // cant refresh..Probably refresh token expired
-              return Promise.reject(error)
-            })
+      tokenservice.init().then(function (token) {
+        originalRequest.headers['Authorization'] = `Bearer ${token}`
+        return axios(originalRequest)
+      }).catch(error => {
+        // cant refresh..Probably refresh token expired
+        return Promise.reject(error)
+      })
    ```
    
    

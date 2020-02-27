@@ -12,6 +12,12 @@ class TokenServices {
     this.kc = kcInstance
   }
 
+  // TODO: Fallback function just to not break the legacy versions, should be removed once the coops consumes the service using the init() function
+  async initUsingUrl (keyCloakConfigurl: string) {
+    ConfigHelper.setKeycloakConfigUrl(keyCloakConfigurl)
+    await this.init()
+  }
+
   async init () {
     const kcOptions: KeycloakInitOptions = {
       onLoad: 'login-required',

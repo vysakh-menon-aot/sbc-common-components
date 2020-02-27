@@ -7,12 +7,12 @@ This component can be used in the signin page.
  [How To Install the dependency](../install/README.md) 
 
 
- 
+
 ## How to use the component
 
-before using this component, make sure you have set the keycloak config url. Steps for doing that are as follows:
+before using this component, make sure you have set the keycloak config url and signin route. Steps for doing that are as follows:
 
-### **Keycloak Initialization**
+### **1. Keycloak Initialization**
 
 import in the **App.vue** file
 
@@ -27,8 +27,25 @@ in the mount function of App class:
     // set keycloak config file's location to the sbc-common-components
     await KeyCloakService.setKeycloakConfigUrl(`${process.env.VUE_APP_PATH}config/kc/keycloak.json`)
 ```
+---
 
-### **import and include the component**
+### **2. Create Signin Route**
+- Create a view component for signin (eg.: `SigninView`)
+- Define a 3 new routes in your routes array: `signin`, `signin-redirect`, `signin-redirect-fail`
+- Refer the below snippet for the exact path urls expected by this component
+
+```js
+routes = [
+    ...
+    { path: '/signin/:idpHint', name: 'signin', component: SigninView, props: true, meta: { requiresAuth: false } },
+    { path: '/signin/:idpHint/:redirectUrl', name: 'signin-redirect', component: SigninView, props: true, meta: { requiresAuth: false } },
+    { path: '/signin/:idpHint/:redirectUrl/:redirectUrlLoginFail', name: 'signin-redirect-fail', component: SigninView, props: true, meta: { requiresAuth: false } },
+    ...
+  ]
+```
+---
+
+### **import and include the component in the SigninView (Signin page)**
 
 ```js
 import SbcSignin from 'sbc-common-components/src/components/SbcSignin.vue'
