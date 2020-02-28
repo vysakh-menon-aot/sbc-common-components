@@ -69,7 +69,7 @@ export default class NavigationBar extends Vue {
 </script>
 
 <style lang="scss" scoped>
-  @import '$assets/scss/theme.scss';
+  @import '../assets/scss/theme.scss';
 
   .toolbar-container {
     border-top: 1px solid $BCgovBlue4;
