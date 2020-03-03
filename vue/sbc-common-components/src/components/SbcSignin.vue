@@ -18,14 +18,14 @@ import TokenService from '../services/token.services'
 export default class SbcSignin extends Vue {
   private isLoading = true
 
-  @Prop({ default: 'bcsc' }) idpHint: string
-  @Prop({ default: '' }) redirectUrlLoginFail: string
+  @Prop({ default: 'bcsc' }) idpHint!: string
+  @Prop({ default: '' }) redirectUrlLoginFail!: string
 
   private async mounted () {
     // Initialize keycloak session
     const kcInit = await this.initKeycloak(this.idpHint)
     await new Promise((resolve, reject) => {
-      kcInit.success(async authenticated => {
+      kcInit.success(async (authenticated: boolean) => {
         if (authenticated) {
           // Set values to session storage
           KeyCloakService.initSession()

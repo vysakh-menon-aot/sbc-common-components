@@ -179,11 +179,11 @@ export default class SbcHeader extends NavigationMixin {
 
   private async mounted () {
     // Initialize LaunchDarkly flags and sync to session storage
-    const user = { 'key': 'sbc-common-components' }
-    this.ldClient = initialize('5db9da115f58e008123cd783', user)
-    this.ldClient.on('ready', () => {
-      ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
-    })
+    // const user = { 'key': 'sbc-common-components' }
+    // this.ldClient = initialize('5db9da115f58e008123cd783', user)
+    // this.ldClient.on('ready', () => {
+    //   ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
+    // })
 
     if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
       const lastUsedAccount = this.getLastAccountId()
@@ -298,7 +298,7 @@ export default class SbcHeader extends NavigationMixin {
   }
 
   getContextPath (): string {
-    let baseUrl = (this.$router && this.$router['history'] && this.$router['history'].base) || ''
+    let baseUrl = (this.$router && (this.$router as any)['history'] && (this.$router as any)['history'].base) || ''
     baseUrl += (baseUrl.length && baseUrl[baseUrl.length - 1] !== '/') ? '/' : ''
     return baseUrl
   }
