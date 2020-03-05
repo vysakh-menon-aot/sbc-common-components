@@ -43,10 +43,7 @@ export default class AccountModule extends VuexModule {
     if (response && response.data) {
       const orgs = response.data.filter(userSettings => (userSettings.type === 'ACCOUNT'))
       this.context.commit('setCurrentAccount', currentAccountId ? orgs.find(org => String(org.id) === currentAccountId) : orgs[0])
-      const membership: Member = await this.context.dispatch('fetchCurrentAccountMembership')
-      if (membership && membership.membershipStatus === 'ACTIVE' && membership.membershipType !== 'MEMBER') {
-        await this.context.dispatch('fetchPendingApprovalCount')
-      }
+      await this.context.dispatch('fetchPendingApprovalCount')
       return orgs
     }
     return []
@@ -54,19 +51,9 @@ export default class AccountModule extends VuexModule {
 
   @Action({ rawError: true, commit: 'setPendingApprovalCount' })
   public async fetchPendingApprovalCount (): Promise<number> {
-    const response = await AccountService.getPendingMembers(this.context.rootState.account &&
+    const response = await AccountService.getPendingMemberCount(this.context.rootState.account &&
       this.context.rootState.account.currentAccount.id)
-    return (response && response.data && response.data.members && response.data.members.length) || 0
-  }
-
-  @Action({ rawError: true, commit: 'setCurrentAccountMembership' })
-  public async fetchCurrentAccountMembership (): Promise<Member | null> {
-    if (this.context.rootState.account.currentAccount) {
-      const response = await AccountService.getMembership(this.context.rootState.account.currentAccount &&
-        this.context.rootState.account.currentAccount.id)
-      return response && response.data
-    }
-    return null
+    return (response && response.data && response.data.count) || 0
   }
 
   @Action({ rawError: true, commit: 'setCurrentAccount' })

@@ -7,3 +7,7 @@ export interface Member {
 export interface Members {
   members: Member[]
 }
+
+export interface Count {
+  count: number
+}
