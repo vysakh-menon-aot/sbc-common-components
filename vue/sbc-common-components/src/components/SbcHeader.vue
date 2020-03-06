@@ -189,6 +189,9 @@ export default class SbcHeader extends NavigationMixin {
     // })
 
     this.loadUserInfo()
+    this.$on('sync-user-profile-ready', () => {
+      this.loadUserInfo()
+    })
 
     if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
       const lastUsedAccount = this.getLastAccountId()
