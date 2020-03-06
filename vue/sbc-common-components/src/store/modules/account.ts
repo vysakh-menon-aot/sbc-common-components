@@ -2,6 +2,8 @@ import { Action, Module, Mutation, VuexModule } from 'vuex-module-decorators'
 import AccountService from '../../services/account.services'
 import { Member } from '../../models/member'
 import { UserSettings } from '../../models/userSettings'
+import { KCUserProfile } from '../../models/KCUserProfile'
+import KeyCloakService from '../../services/keycloak.services'
 
 @Module({
   name: 'account',
@@ -12,9 +14,15 @@ export default class AccountModule extends VuexModule {
   currentAccount: UserSettings | null = null
   currentAccountMembership: Member | null = null
   pendingApprovalCount = 0
+  currentUser: KCUserProfile | null = null
 
   get accountName () {
     return this.currentAccount && this.currentAccount.label
+  }
+
+  @Mutation
+  public setCurrentUser (currentUser: KCUserProfile) {
+    this.currentUser = currentUser
   }
 
   @Mutation
@@ -35,6 +43,12 @@ export default class AccountModule extends VuexModule {
   @Mutation
   public setCurrentAccountMembership (membership: Member): void {
     this.currentAccountMembership = membership
+  }
+
+  @Action({ commit: 'setCurrentUser' })
+  public loadUserInfo () {
+    // Load User Info
+    return KeyCloakService.getUserInfo()
   }
 
   @Action({ rawError: true, commit: 'setUserSettings' })

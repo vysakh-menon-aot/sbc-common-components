@@ -131,16 +131,17 @@ import store from '../store'
 import { UserSettings } from '../models/userSettings'
 import Vue from 'vue'
 import NavigationMixin from '../mixins/navigation-mixin'
+import { KCUserProfile } from '../models/KCUserProfile'
 
 @Component({
   beforeCreate () {
     this.$store = store
   },
   computed: {
-    ...mapState('account', ['userSettings', 'currentAccount', 'pendingApprovalCount'])
+    ...mapState('account', ['userSettings', 'currentAccount', 'pendingApprovalCount', 'currentUser'])
   },
   methods: {
-    ...mapActions('account', ['syncUserSettings', 'syncCurrentAccount'])
+    ...mapActions('account', ['syncUserSettings', 'syncCurrentAccount', 'loadUserInfo'])
   }
 })
 export default class SbcHeader extends NavigationMixin {
@@ -149,8 +150,10 @@ export default class SbcHeader extends NavigationMixin {
   private readonly userSettings!: UserSettings[]
   private readonly currentAccount!: UserSettings
   private readonly pendingApprovalCount!: number;
+  private readonly currentUser!: KCUserProfile;
   private readonly syncUserSettings!: (currentAccountId: string) => Promise<UserSettings[]>
   private readonly syncCurrentAccount!: (settings: UserSettings) => Promise<UserSettings>
+  private readonly loadUserInfo!: () => KCUserProfile
   @Prop({ default: '' }) redirectOnLoginSuccess!: string;
   @Prop({ default: '' }) redirectOnLoginFail!: string;
   @Prop({ default: '' }) redirectOnLogout!: string;
@@ -185,6 +188,8 @@ export default class SbcHeader extends NavigationMixin {
     //   ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
     // })
 
+    this.loadUserInfo()
+
     if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
       const lastUsedAccount = this.getLastAccountId()
       await this.syncUserSettings(lastUsedAccount)
@@ -202,7 +207,7 @@ export default class SbcHeader extends NavigationMixin {
   }
 
   private get username (): string {
-    return ConfigHelper.getFromSession(SessionStorageKeys.UserFullName) || '-'
+    return (this.currentUser && this.currentUser.fullName) || '-'
   }
 
   /**
@@ -220,8 +225,7 @@ export default class SbcHeader extends NavigationMixin {
   }
 
   private get authorized (): boolean {
-    let auth = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
-    return !!auth
+    return !!this.currentUser
   }
 
   private get accountType (): string {
