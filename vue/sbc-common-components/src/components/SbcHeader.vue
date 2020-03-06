@@ -193,7 +193,7 @@ export default class SbcHeader extends NavigationMixin {
       this.loadUserInfo()
     })
 
-    if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
+    if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) && (this.accountType !== 'IDIR')) {
       const lastUsedAccount = this.getLastAccountId()
       await this.syncUserSettings(lastUsedAccount)
 
