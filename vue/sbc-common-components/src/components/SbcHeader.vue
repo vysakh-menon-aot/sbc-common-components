@@ -188,12 +188,12 @@ export default class SbcHeader extends NavigationMixin {
     //   ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
     // })
 
-    this.loadUserInfo()
     this.$on('sync-user-profile-ready', () => {
       this.loadUserInfo()
     })
 
     if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) && (this.accountType !== 'IDIR')) {
+      this.loadUserInfo()
       const lastUsedAccount = this.getLastAccountId()
       await this.syncUserSettings(lastUsedAccount)
 
