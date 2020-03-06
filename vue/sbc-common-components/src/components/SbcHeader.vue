@@ -192,7 +192,12 @@ export default class SbcHeader extends NavigationMixin {
       this.loadUserInfo()
     })
 
-    if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) && (this.accountType !== 'IDIR')) {
+    if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
+      //  Staff: probably initial login. So just emit the event and return
+      if (this.accountType === 'IDIR') {
+        this.persistAndEmitAccountId()
+        return
+      }
       this.loadUserInfo()
       const lastUsedAccount = this.getLastAccountId()
       await this.syncUserSettings(lastUsedAccount)
