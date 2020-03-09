@@ -65,9 +65,12 @@ export default class AccountModule extends VuexModule {
 
   @Action({ rawError: true, commit: 'setPendingApprovalCount' })
   public async fetchPendingApprovalCount (): Promise<number> {
-    const response = await AccountService.getPendingMemberCount(this.context.rootState.account &&
-      this.context.rootState.account.currentAccount.id)
-    return (response && response.data && response.data.count) || 0
+    if (this.context.rootState.account && this.context.rootState.account.currentAccount && this.context.rootState.account.currentAccount.id) {
+      const response = await AccountService.getPendingMemberCount(this.context.rootState.account.currentAccount.id)
+      return (response && response.data && response.data.count) || 0
+    } else {
+      return 0
+    }
   }
 
   @Action({ rawError: true, commit: 'setCurrentAccount' })

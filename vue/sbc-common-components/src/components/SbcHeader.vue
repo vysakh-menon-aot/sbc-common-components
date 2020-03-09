@@ -206,7 +206,7 @@ export default class SbcHeader extends NavigationMixin {
      Emit event to downstream only when account id is changed.
      ie ; on account switch or on when the app is loaded. Otherwise need not to propagate the changes
      */
-      const isAccountChanged = lastUsedAccount !== this.currentAccount.id.toString()
+      const isAccountChanged = !this.currentAccount || lastUsedAccount !== this.currentAccount.id.toString()
       if (isAccountChanged) {
         this.persistAndEmitAccountId()
       }
