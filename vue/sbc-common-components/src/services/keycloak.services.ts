@@ -1,7 +1,7 @@
 import Keycloak, { KeycloakInitOptions, KeycloakInstance, KeycloakLoginOptions, KeycloakTokenParsed } from 'keycloak-js'
-import { SessionStorageKeys } from '../util/constants'
 import { KCUserProfile } from '../models/KCUserProfile'
 import ConfigHelper from '../util/config-helper'
+import { SessionStorageKeys } from '../util/constants'
 
 interface UserToken extends KeycloakTokenParsed {
   lastname: string;
@@ -14,7 +14,7 @@ interface UserToken extends KeycloakTokenParsed {
 }
 
 class KeyCloakService {
-  private kc: KeycloakInstance
+  private kc: KeycloakInstance | undefined
   private parsedToken: any
   private static instance: KeyCloakService
 
@@ -24,26 +24,28 @@ class KeyCloakService {
 
   init (idpHint: string) {
     this.cleanupSession()
-    const token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
+    const token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) || undefined
     const keycloakConfig = ConfigHelper.getKeycloakConfigUrl()
     this.kc = Keycloak(keycloakConfig)
     const kcLogin = this.kc.login
     this.kc.login = (options?: KeycloakLoginOptions) => {
-      options.idpHint = idpHint
+      if (options) {
+        options.idpHint = idpHint
+      }
       return kcLogin(options)
     }
     return this.kc.init({ token: token, onLoad: 'login-required' })
   }
 
   initSession () {
-    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakToken, this.kc.token)
-    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakIdToken, this.kc.idToken)
-    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakRefreshToken, this.kc.refreshToken)
+    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakToken, this.kc?.token)
+    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakIdToken, this.kc?.idToken)
+    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakRefreshToken, this.kc?.refreshToken)
     ConfigHelper.addToSession(SessionStorageKeys.UserFullName, this.getUserInfo().fullName)
     ConfigHelper.addToSession(SessionStorageKeys.UserFullName, this.getUserInfo().fullName)
     ConfigHelper.addToSession(SessionStorageKeys.UserKcId, this.getUserInfo().keycloakGuid)
 
-    this.parsedToken = this.kc.tokenParsed as UserToken
+    this.parsedToken = this.kc?.tokenParsed as UserToken
 
     // Set flag in session storage so that common components will know account type
     ConfigHelper.addToSession(SessionStorageKeys.UserAccountType, this.getUserInfo().loginSource)
@@ -66,29 +68,29 @@ class KeyCloakService {
   }
 
   async logout (redirectUrl: string) {
-    let token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
+    let token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) || undefined
     if (token) {
       this.kc = Keycloak(ConfigHelper.getKeycloakConfigUrl())
       let kcOptions :KeycloakInitOptions = {
         onLoad: 'login-required',
         checkLoginIframe: false,
         timeSkew: 0,
-        token: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken),
-        refreshToken: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakRefreshToken),
-        idToken: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakIdToken)
+        token,
+        refreshToken: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakRefreshToken) || undefined,
+        idToken: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakIdToken) || undefined
       }
       // Here we clear session storage, and add a flag in to prevent the app from
       // putting tokens back in from returning async calls  (see #2341)
       ConfigHelper.clearSession()
       ConfigHelper.addToSession(SessionStorageKeys.PreventStorageSync, true)
       return new Promise((resolve, reject) => {
-        this.kc.init(kcOptions)
+        this.kc && this.kc.init(kcOptions)
           .success(authenticated => {
             if (!authenticated) {
               resolve()
             }
             redirectUrl = redirectUrl || `${window.location.origin}${process.env.VUE_APP_PATH}`
-            this.kc.logout({ redirectUri: redirectUrl })
+            this.kc && this.kc.logout({ redirectUri: redirectUrl })
               .success(() => {
                 resolve()
               })
@@ -103,7 +105,7 @@ class KeyCloakService {
     }
   }
 
-  getKCInstance () : KeycloakInstance {
+  getKCInstance () : KeycloakInstance | undefined {
     return this.kc
   }
 
@@ -115,8 +117,11 @@ class KeyCloakService {
 
   async refreshToken () {
     // Set the token expiry time as the minValidity to force refresh token
-    let tokenExpiresIn = this.kc.tokenParsed['exp'] - Math.ceil(new Date().getTime() / 1000) + this.kc.timeSkew + 100
-    this.kc.updateToken(tokenExpiresIn)
+    if (!this.kc || !this.kc.tokenParsed || !this.kc.tokenParsed.exp || !this.kc.timeSkew) {
+      return
+    }
+    let tokenExpiresIn = this.kc.tokenParsed.exp - Math.ceil(new Date().getTime() / 1000) + this.kc.timeSkew + 100
+    this.kc && this.kc.updateToken(tokenExpiresIn)
       .success(refreshed => {
         if (refreshed) {
           this.initSession()
@@ -141,11 +146,13 @@ class KeyCloakService {
   decodeToken () {
     try {
       let token = sessionStorage.getItem(SessionStorageKeys.KeyCloakToken)
-      const base64Url = token.split('.')[1]
-      const base64 = decodeURIComponent(window.atob(base64Url).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-      }).join(''))
-      return JSON.parse(base64)
+      if (token) {
+        const base64Url = token.split('.')[1]
+        const base64 = decodeURIComponent(window.atob(base64Url).split('').map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        }).join(''))
+        return JSON.parse(base64)
+      }
     } catch (error) {
       throw new Error('Error parsing JWT - ' + error)
     }

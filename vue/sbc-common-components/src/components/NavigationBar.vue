@@ -17,7 +17,12 @@
           <v-divider color="#26527d"></v-divider>
           <v-list dark color="navMenuBg" class="pt-0 pb-0">
             <v-list-item-group>
-              <v-list-item :data-test="menuItem.name" v-for="menuItem in configuration.menuItems" :key="menuItem.name" :to="menuItem.url">
+              <v-list-item
+                :data-test="menuItem.name"
+                v-for="menuItem in configuration.menuItems"
+                :key="menuItem.name"
+                :to="menuItem.url"
+                :disabled="!isMenuItemEnabled(menuItem)">
                 <v-list-item-icon v-if="menuItem.icon">
                   <v-icon color="#003366">{{ menuItem.icon }}</v-icon>
                 </v-list-item-icon>
@@ -39,7 +44,8 @@
             v-for="menuItem in configuration.menuItems"
             :data-test="menuItem.name"
             :key="menuItem.name"
-            :to="menuItem.url">
+            :to="menuItem.url"
+            :disabled="!isMenuItemEnabled(menuItem)">
             <v-icon small v-if="menuItem.icon">{{ menuItem.icon }}</v-icon>
             <span>{{ menuItem.name }}</span>
           </v-btn>
@@ -51,19 +57,35 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator'
-import { NavigationBarConfig } from '../models/NavigationBarConfig'
+import { NavigationBarConfig, NavigationMenuItem } from '../models/NavigationBarConfig'
 import { getModule } from 'vuex-module-decorators'
 import { mapState } from 'vuex'
+import store from '../store'
+import { KCUserProfile } from '../models/KCUserProfile'
+import { UserSettings } from '../models/userSettings'
 
 @Component({
-  name: 'NavigationBar'
+  beforeCreate () {
+    this.$store = store
+  },
+  name: 'NavigationBar',
+  computed: {
+    ...mapState('account', ['currentUser', 'currentAccount'])
+  }
 })
 export default class NavigationBar extends Vue {
   @Prop() configuration!: NavigationBarConfig
+  @Prop({ default: false }) hide!: boolean
+  private readonly currentUser!: KCUserProfile
+  private readonly currentAccount!: UserSettings
   private mobileNavDrawer = false
 
-  get showNavBar (): boolean {
-    return this.configuration && this.configuration.menuItems.length > 0
+  private get showNavBar (): boolean {
+    return !this.hide && this.configuration && this.configuration.menuItems.length > 0
+  }
+
+  private isMenuItemEnabled (menuItem: NavigationMenuItem): boolean {
+    return !((menuItem.meta.requiresAuth && !this.currentUser) || (menuItem.meta.requiresAccount && !this.currentAccount))
   }
 }
 </script>
