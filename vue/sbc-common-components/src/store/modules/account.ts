@@ -4,6 +4,8 @@ import { Member } from '../../models/member'
 import { UserSettings } from '../../models/userSettings'
 import { KCUserProfile } from '../../models/KCUserProfile'
 import KeyCloakService from '../../services/keycloak.services'
+import ConfigHelper from '../../util/config-helper'
+import { SessionStorageKeys } from '../../util/constants'
 
 @Module({
   name: 'account',
@@ -20,6 +22,18 @@ export default class AccountModule extends VuexModule {
     return this.currentAccount && this.currentAccount.label
   }
 
+  get accountType (): string {
+    return ConfigHelper.getFromSession(SessionStorageKeys.UserAccountType) || 'BCSC'
+  }
+
+  get switchableAccounts () {
+    return this.userSettings && this.userSettings.filter(setting => setting.type === 'ACCOUNT')
+  }
+
+  get username (): string {
+    return this.currentUser?.fullName || '-'
+  }
+
   @Mutation
   public setCurrentUser (currentUser: KCUserProfile) {
     this.currentUser = currentUser
@@ -32,6 +46,7 @@ export default class AccountModule extends VuexModule {
 
   @Mutation
   public setCurrentAccount (userSetting: UserSettings): void {
+    ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(userSetting))
     this.currentAccount = userSetting
   }
 
@@ -45,7 +60,7 @@ export default class AccountModule extends VuexModule {
     this.currentAccountMembership = membership
   }
 
-  @Action({ commit: 'setCurrentUser' })
+  @Action({ rawError: true, commit: 'setCurrentUser' })
   public loadUserInfo () {
     // Load User Info
     return KeyCloakService.getUserInfo()
@@ -74,7 +89,30 @@ export default class AccountModule extends VuexModule {
   }
 
   @Action({ rawError: true, commit: 'setCurrentAccount' })
-  public async syncCurrentAccount (userSetting:UserSettings): Promise<UserSettings> {
+  public async syncCurrentAccount (userSetting: UserSettings): Promise<UserSettings> {
     return userSetting
+  }
+
+  @Action({ rawError: true })
+  public async syncAccount () {
+    function getLastAccountId (): string {
+      let pathList = window.location.pathname.split('/')
+      let indexOfAccount = pathList.indexOf('account')
+      let nextValAfterAccount = indexOfAccount > 0 ? pathList[indexOfAccount + 1] : ''
+      let orgIdFromUrl = isNaN(+nextValAfterAccount) ? '' : nextValAfterAccount
+      const storageAccountId = JSON.parse(ConfigHelper.getFromSession(SessionStorageKeys.CurrentAccount) || '{}').id
+      return orgIdFromUrl || String(storageAccountId || '') || ''
+    }
+
+    switch (this.accountType) {
+      case 'IDIR':
+        break
+      case 'BCSC':
+      case 'BCROS':
+      default:
+        const lastUsedAccount = getLastAccountId()
+        await this.syncUserSettings(lastUsedAccount)
+        ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(this.currentAccount || ''))
+    }
   }
 }

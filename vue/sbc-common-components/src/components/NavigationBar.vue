@@ -56,28 +56,45 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Component, Prop, Vue, Mixins } from 'vue-property-decorator'
 import { NavigationBarConfig, NavigationMenuItem } from '../models/NavigationBarConfig'
 import { getModule } from 'vuex-module-decorators'
-import { mapState } from 'vuex'
-import store from '../store'
-import { KCUserProfile } from '../models/KCUserProfile'
+import { mapState, mapGetters } from 'vuex'
+import ConfigHelper from '../util/config-helper'
+import { SessionStorageKeys } from '../util/constants'
+import AccountModule from '../store/modules/account'
+import AuthModule from '../store/modules/auth'
 import { UserSettings } from '../models/userSettings'
 
 @Component({
-  beforeCreate () {
-    this.$store = store
-  },
   name: 'NavigationBar',
-  computed: {
-    ...mapState('account', ['currentUser', 'currentAccount'])
+  beforeCreate () {
+    this.$store.hasModule = function (aPath: string[]) {
+      let m = (this as any)._modules.root
+      return aPath.every((p) => {
+        m = m._children[p]
+        return m
+      })
+    }
+    if (!this.$store.hasModule(['account'])) {
+      this.$store.registerModule('account', AccountModule)
+    }
+    if (!this.$store.hasModule(['auth'])) {
+      this.$store.registerModule('auth', AuthModule)
+    }
+    this.$options.computed = {
+      ...(this.$options.computed || {}),
+      ...mapState('auth', ['token']),
+      ...mapState('account', ['currentAccount']),
+      ...mapGetters('auth', ['isAuthenticated'])
+    }
   }
 })
 export default class NavigationBar extends Vue {
+  private readonly currentAccount!: UserSettings | null
+  private readonly isAuthenticated!: boolean
   @Prop() configuration!: NavigationBarConfig
   @Prop({ default: false }) hide!: boolean
-  private readonly currentUser!: KCUserProfile
-  private readonly currentAccount!: UserSettings
   private mobileNavDrawer = false
 
   private get showNavBar (): boolean {
@@ -85,7 +102,7 @@ export default class NavigationBar extends Vue {
   }
 
   private isMenuItemEnabled (menuItem: NavigationMenuItem): boolean {
-    return !((menuItem.meta.requiresAuth && !this.currentUser) || (menuItem.meta.requiresAccount && !this.currentAccount))
+    return !(menuItem.meta.requiresAuth && !this.isAuthenticated) || (menuItem.meta.requiresAccount && !this.currentAccount)
   }
 }
 </script>

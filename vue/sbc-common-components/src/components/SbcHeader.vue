@@ -15,10 +15,14 @@
         <span class="brand__title">BC Registries <span class="brand__title--wrap">& Online Services</span></span>
       </a>
       <div class="app-header__actions">
-        <v-btn color="#fcba19" class="log-in-btn" v-if="!authorized" @click="login()">Log in with BC Services Card</v-btn>
+          <v-btn color="#fcba19" class="log-in-btn" v-if="!isAuthenticated" @click="login()">
+            <slot name="login-button-text">
+              Log in with BC Services Card
+            </slot>
+          </v-btn>
 
         <!-- Messages -->
-        <v-menu bottom left fixed transition="slide-y-transition" v-if="authorized">
+        <v-menu bottom left fixed transition="slide-y-transition" v-if="isAuthenticated">
           <template v-slot:activator="{ on }">
             <v-btn text large class="messages-btn mr-2" v-on="on">
               <v-icon class="white--text">
@@ -44,7 +48,7 @@
         </v-menu>
 
         <!-- Account -->
-        <v-menu bottom left fixed transition="slide-y-transition" content-class="account-menu" v-if="authorized">
+        <v-menu bottom left fixed transition="slide-y-transition" content-class="account-menu" v-if="isAuthenticated">
           <template v-slot:activator="{ on }">
             <v-btn text large v-on="on" class="user-account-btn">
               <v-avatar tile left size="32" class="user-avatar">
@@ -105,7 +109,7 @@
 
           <v-list tile dense v-if="accountType !== 'IDIR' && switchableAccounts.length > 1">
             <v-subheader>SWITCH ACCOUNT</v-subheader>
-            <v-list-item @click="switchAccount(settings)" v-for="(settings, id) in switchableAccounts" :key="id">
+            <v-list-item @click="switchAccount(settings, inAuth)" v-for="(settings, id) in switchableAccounts" :key="id">
               <v-list-item-icon left>
                 <v-icon v-show="settings.id === currentAccount.id">mdi-check</v-icon>
               </v-list-item-icon>
@@ -124,40 +128,69 @@ import { Component, Mixins, Prop } from 'vue-property-decorator'
 import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
 import ConfigHelper from '../util/config-helper'
 import { SessionStorageKeys } from '../util/constants'
-import { mapActions, mapState } from 'vuex'
-import { getModule } from 'vuex-module-decorators'
-import AccountModule from '../store/modules/account'
-import store from '../store'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import { UserSettings } from '../models/userSettings'
 import Vue from 'vue'
 import NavigationMixin from '../mixins/navigation-mixin'
+import { getModule } from 'vuex-module-decorators'
+import AccountModule from '../store/modules/account'
+import AuthModule from '../store/modules/auth'
 import { KCUserProfile } from '../models/KCUserProfile'
+import keycloakService from '../services/keycloak.services'
+
+declare module 'vuex' {
+  interface Store<S> {
+    hasModule(_: string[]): boolean
+  }
+}
 
 @Component({
   beforeCreate () {
-    this.$store = store
-  },
-  computed: {
-    ...mapState('account', ['userSettings', 'currentAccount', 'pendingApprovalCount', 'currentUser'])
-  },
-  methods: {
-    ...mapActions('account', ['syncUserSettings', 'syncCurrentAccount', 'loadUserInfo'])
+    this.$store.hasModule = function (aPath: string[]) {
+      let m = (this as any)._modules.root
+      return aPath.every((p) => {
+        m = m._children[p]
+        return m
+      })
+    }
+    if (!this.$store.hasModule(['account'])) {
+      this.$store.registerModule('account', AccountModule)
+    }
+    if (!this.$store.hasModule(['auth'])) {
+      this.$store.registerModule('auth', AuthModule)
+    }
+    this.$options.computed = {
+      ...(this.$options.computed || {}),
+      ...mapState('account', ['currentAccount', 'pendingApprovalCount']),
+      ...mapGetters('account', ['accountName', 'accountType', 'switchableAccounts', 'username']),
+      ...mapGetters('auth', ['isAuthenticated'])
+    }
+    this.$options.methods = {
+      ...(this.$options.methods || {}),
+      ...mapActions('account', ['loadUserInfo', 'syncAccount', 'syncCurrentAccount']),
+      ...mapActions('auth', ['syncWithSessionStorage'])
+    }
   }
 })
-export default class SbcHeader extends NavigationMixin {
+export default class SbcHeader extends Mixins(NavigationMixin) {
   private ldClient!: LDClient
-  private accountStoreModule = getModule<AccountModule>(AccountModule, store)
-  private readonly userSettings!: UserSettings[]
-  private readonly currentAccount!: UserSettings
-  private readonly pendingApprovalCount!: number;
-  private readonly currentUser!: KCUserProfile;
-  private readonly syncUserSettings!: (currentAccountId: string) => Promise<UserSettings[]>
-  private readonly syncCurrentAccount!: (settings: UserSettings) => Promise<UserSettings>
+  private readonly currentAccount!: UserSettings | null
+  private readonly pendingApprovalCount!: number
+  private readonly username!: string
+  private readonly accountName!: string
+  private readonly accountType!: string
+  private readonly isAuthenticated!: boolean
+  private readonly switchableAccounts!: UserSettings[]
   private readonly loadUserInfo!: () => KCUserProfile
+  private readonly syncAccount!: () => Promise<void>
+  private readonly syncCurrentAccount!: (userSettings: UserSettings) => Promise<UserSettings>
+  private readonly syncWithSessionStorage!: () => void
+
   @Prop({ default: '' }) redirectOnLoginSuccess!: string;
   @Prop({ default: '' }) redirectOnLoginFail!: string;
   @Prop({ default: '' }) redirectOnLogout!: string;
   @Prop({ default: false }) inAuth!: boolean;
+  @Prop({ default: '' }) idpHint!: string;
 
   get showAccountSwitching (): boolean {
     try {
@@ -168,18 +201,6 @@ export default class SbcHeader extends NavigationMixin {
     }
   }
 
-  get switchableAccounts () {
-    return this.userSettings && this.userSettings.filter(setting => setting.type === 'ACCOUNT')
-  }
-
-  private get accountName (): string {
-    return (this.currentAccount && this.currentAccount.label) || ' '
-  }
-
-  private get accountId (): string {
-    return this.currentAccount && this.currentAccount.id
-  }
-
   private async mounted () {
     // Initialize LaunchDarkly flags and sync to session storage
     // const user = { 'key': 'sbc-common-components' }
@@ -187,83 +208,12 @@ export default class SbcHeader extends NavigationMixin {
     // this.ldClient.on('ready', () => {
     //   ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
     // })
-
-    this.$on('sync-user-profile-ready', () => {
+    getModule(AccountModule, this.$store)
+    getModule(AuthModule, this.$store)
+    this.syncWithSessionStorage()
+    if (this.isAuthenticated) {
       this.loadUserInfo()
-    })
-
-    if (ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
-      //  Staff: probably initial login. So just emit the event and return
-      if (this.accountType === 'IDIR') {
-        this.persistAndEmitAccountId()
-        return
-      }
-      this.loadUserInfo()
-      const lastUsedAccount = this.getLastAccountId()
-      await this.syncUserSettings(lastUsedAccount)
-
-      /*
-     Emit event to downstream only when account id is changed.
-     ie ; on account switch or on when the app is loaded. Otherwise need not to propagate the changes
-     */
-      const isAccountChanged = !this.currentAccount || lastUsedAccount !== this.currentAccount.id.toString()
-      if (isAccountChanged) {
-        this.persistAndEmitAccountId()
-      }
-    }
-  }
-
-  private persistAndEmitAccountId () {
-    if (this.currentAccount) {
-      ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(this.currentAccount))
-      this.$root.$emit('accountSyncReady', this.currentAccount)
-    } else {
-      this.$root.$emit('accountSyncReady')
-    }
-  }
-
-  private get username (): string {
-    return (this.currentUser && this.currentUser.fullName) || '-'
-  }
-
-  /**
-   * Check if the url has an account Id as a URL param -> if so ,that's the CurrentAccount.id
-   * else check if there is a session storage value -> if so , thats CurrentAccount.id
-   * else no current account is present
-   */
-  private getLastAccountId () : string {
-    let pathList = window.location.pathname.split('/')
-    let indexOfAccount = pathList.indexOf('account')
-    let nextValAfterAccount = indexOfAccount > 0 ? pathList[indexOfAccount + 1] : ''
-    let orgIdFromUrl = isNaN(+nextValAfterAccount) ? '' : nextValAfterAccount
-    const storageAccountId = JSON.parse(ConfigHelper.getFromSession(SessionStorageKeys.CurrentAccount) || '{}').id
-    return orgIdFromUrl || String(storageAccountId || '') || ''
-  }
-
-  private get authorized (): boolean {
-    return !!this.currentUser
-  }
-
-  private get accountType (): string {
-    return ConfigHelper.getFromSession(SessionStorageKeys.UserAccountType) || 'BCSC'
-  }
-
-  logout () {
-    if (this.redirectOnLogout) {
-      const url = encodeURIComponent(this.redirectOnLogout)
-      window.location.assign(`${this.getContextPath()}signout/${url}`)
-    } else {
-      window.location.assign(`${this.getContextPath()}signout`)
-    }
-  }
-
-  login () {
-    if (this.redirectOnLoginSuccess) {
-      let url = encodeURIComponent(this.redirectOnLoginSuccess)
-      url += this.redirectOnLoginFail ? `/${encodeURIComponent(this.redirectOnLoginFail)}` : ''
-      window.location.assign(`${this.getContextPath()}signin/bcsc/${url}`)
-    } else {
-      window.location.assign(`${this.getContextPath()}signin/bcsc`)
+      await this.syncAccount()
     }
   }
 
@@ -285,7 +235,9 @@ export default class SbcHeader extends NavigationMixin {
 
   private async goToAccountInfo (settings: UserSettings) {
     await this.syncCurrentAccount(settings)
-    ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(settings))
+    if (!this.currentAccount) {
+      return
+    }
     if (this.inAuth) {
       this.navigateTo(ConfigHelper.getAuthContextPath(), `account/${this.currentAccount.id}/settings/account-info`)
     } else {
@@ -294,6 +246,9 @@ export default class SbcHeader extends NavigationMixin {
   }
 
   private goToTeamMembers () {
+    if (!this.currentAccount) {
+      return
+    }
     if (this.inAuth) {
       this.navigateTo(ConfigHelper.getAuthContextPath(), `account/${this.currentAccount.id}/settings/team-members`)
     } else {
@@ -301,23 +256,40 @@ export default class SbcHeader extends NavigationMixin {
     }
   }
 
-  private async switchAccount (settings: UserSettings) {
-    this.$root.$emit('accountSyncStarted')
-    await this.syncCurrentAccount(settings)
-    this.persistAndEmitAccountId()
-
-    // Navigate to the same current route if in auth-web
-    if (this.$route.params['orgId']) {
-      // If route includes a URL param for account, we need to refresh
-      this.$router.push({ name: this.$route.name, params: { orgId: this.currentAccount.id } })
+  private async switchAccount (settings: UserSettings, inAuth?: boolean) {
+    this.$emit('account-switch-started')
+    if (this.$route.params.orgId) {
+      // If route includes a URL param for account, we need to refresh with the new account id
+      this.$router.push({ name: this.$route.name, params: { orgId: settings.id } })
     }
+    await this.syncCurrentAccount(settings)
+    this.$emit('account-switch-completed')
 
-    if (!this.inAuth) {
+    if (!inAuth) {
       window.location.assign(`${ConfigHelper.getAuthContextPath()}home`)
     }
   }
 
-  getContextPath (): string {
+  logout () {
+    if (this.redirectOnLogout) {
+      const url = encodeURIComponent(this.redirectOnLogout)
+      window.location.assign(`${this.getContextPath()}signout/${url}`)
+    } else {
+      window.location.assign(`${this.getContextPath()}signout`)
+    }
+  }
+
+  login () {
+    if (this.redirectOnLoginSuccess) {
+      let url = encodeURIComponent(this.redirectOnLoginSuccess)
+      url += this.redirectOnLoginFail ? `/${encodeURIComponent(this.redirectOnLoginFail)}` : ''
+      window.location.assign(`${this.getContextPath()}signin/${this.idpHint}/${url}`)
+    } else {
+      window.location.assign(`${this.getContextPath()}signin/${this.idpHint}`)
+    }
+  }
+
+  private getContextPath (): string {
     let baseUrl = (this.$router && (this.$router as any)['history'] && (this.$router as any)['history'].base) || ''
     baseUrl += (baseUrl.length && baseUrl[baseUrl.length - 1] !== '/') ? '/' : ''
     return baseUrl

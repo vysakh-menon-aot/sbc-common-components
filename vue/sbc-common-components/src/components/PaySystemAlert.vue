@@ -14,25 +14,39 @@ import StatusModule from '../store/modules/status'
 import { getModule } from 'vuex-module-decorators'
 import { ServiceStatus } from '../models/ServiceStatus'
 import { mapState, mapActions } from 'vuex'
-import store from '../store'
+
+declare module 'vuex' {
+  interface Store<S> {
+    hasModule(_: string[]): boolean
+  }
+}
 
 @Component({
   components: {
     SbcSystemBanner
   },
   beforeCreate () {
-    this.$store = store
-  },
-  computed: {
-    ...mapState('status', ['paySystemStatus'])
-  },
-  methods: {
-    ...mapActions('status', ['fetchPaySystemStatus'])
+    this.$store.hasModule = function (aPath: string[]) {
+      let m = (this as any)._modules.root
+      return aPath.every((p) => {
+        m = m._children[p]
+        return m
+      })
+    }
+    if (!this.$store.hasModule(['status'])) {
+      this.$store.registerModule('status', StatusModule)
+    }
+    this.$options.computed = {
+      ...(this.$options.computed || {}),
+      ...mapState('status', ['paySystemStatus'])
+    }
+    this.$options.methods = {
+      ...(this.$options.methods || {}),
+      ...mapActions('status', ['fetchPaySystemStatus'])
+    }
   }
 })
-
 export default class PaySystemAlert extends Vue {
-  private statusStoreModule = getModule<StatusModule>(StatusModule, store)
   private readonly paySystemStatus!: ServiceStatus
   private readonly fetchPaySystemStatus!: () => Promise<ServiceStatus>
   private getBoolean (value: boolean | string | number): boolean {
@@ -55,7 +69,7 @@ export default class PaySystemAlert extends Vue {
   }
 
   private async mounted () {
-    this.statusStoreModule = getModule(StatusModule, this.$store)
+    getModule(StatusModule, this.$store)
     await this.fetchPaySystemStatus()
   }
 

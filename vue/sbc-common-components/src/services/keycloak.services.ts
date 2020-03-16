@@ -2,6 +2,9 @@ import Keycloak, { KeycloakInitOptions, KeycloakInstance, KeycloakLoginOptions, 
 import { KCUserProfile } from '../models/KCUserProfile'
 import ConfigHelper from '../util/config-helper'
 import { SessionStorageKeys } from '../util/constants'
+import { Store } from 'vuex'
+import { getModule } from 'vuex-module-decorators'
+import AuthModule from '../store/modules/auth'
 
 interface UserToken extends KeycloakTokenParsed {
   lastname: string;
@@ -17,12 +20,18 @@ class KeyCloakService {
   private kc: KeycloakInstance | undefined
   private parsedToken: any
   private static instance: KeyCloakService
+  private store: Store<any> | null = null
 
   public static getInstance (): KeyCloakService {
     return (this.instance) ? this.instance : new KeyCloakService()
   }
 
-  init (idpHint: string) {
+  public get isInitialized (): boolean {
+    return !!this.kc
+  }
+
+  init (idpHint: string, store: Store<any>) {
+    this.store = store
     this.cleanupSession()
     const token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) || undefined
     const keycloakConfig = ConfigHelper.getKeycloakConfigUrl()
@@ -38,17 +47,19 @@ class KeyCloakService {
   }
 
   initSession () {
-    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakToken, this.kc?.token)
-    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakIdToken, this.kc?.idToken)
-    ConfigHelper.addToSession(SessionStorageKeys.KeyCloakRefreshToken, this.kc?.refreshToken)
-    ConfigHelper.addToSession(SessionStorageKeys.UserFullName, this.getUserInfo().fullName)
-    ConfigHelper.addToSession(SessionStorageKeys.UserFullName, this.getUserInfo().fullName)
-    ConfigHelper.addToSession(SessionStorageKeys.UserKcId, this.getUserInfo().keycloakGuid)
+    if (!this.store) {
+      return
+    }
 
-    this.parsedToken = this.kc?.tokenParsed as UserToken
+    const authModule = getModule(AuthModule, this.store)
+    authModule.setKCToken(this.kc?.token || '')
+    authModule.setIDToken(this.kc?.idToken || '')
+    authModule.setRefreshToken(this.kc?.refreshToken || '')
 
-    // Set flag in session storage so that common components will know account type
-    ConfigHelper.addToSession(SessionStorageKeys.UserAccountType, this.getUserInfo().loginSource)
+    const userInfo = this.getUserInfo()
+    authModule.setUserFullName(userInfo?.fullName || '')
+    authModule.setKCGuid(userInfo?.keycloakGuid || '')
+    authModule.setLoginSource(userInfo?.loginSource || '')
   }
 
   getUserInfo () : KCUserProfile {
@@ -67,7 +78,7 @@ class KeyCloakService {
     }
   }
 
-  async logout (redirectUrl: string) {
+  async logout (redirectUrl?: string) {
     let token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) || undefined
     if (token) {
       this.kc = Keycloak(ConfigHelper.getKeycloakConfigUrl())
