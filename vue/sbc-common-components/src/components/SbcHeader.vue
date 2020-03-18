@@ -89,7 +89,7 @@
 
           <v-divider></v-divider>
 
-          <v-list tile dense v-if="accountType !== 'IDIR'">
+          <v-list tile dense v-if="currentAccount && accountType !== 'IDIR'">
             <v-subheader>ACCOUNT SETTINGS</v-subheader>
             <v-list-item @click="goToAccountInfo(currentAccount)">
               <v-list-item-icon left>
@@ -234,10 +234,10 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   }
 
   private async goToAccountInfo (settings: UserSettings) {
-    await this.syncCurrentAccount(settings)
-    if (!this.currentAccount) {
+    if (!this.currentAccount || !settings) {
       return
     }
+    await this.syncCurrentAccount(settings)
     if (this.inAuth) {
       this.navigateTo(ConfigHelper.getAuthContextPath(), `account/${this.currentAccount.id}/settings/account-info`)
     } else {
