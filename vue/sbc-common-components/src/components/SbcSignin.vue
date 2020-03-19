@@ -54,18 +54,16 @@ export default class SbcSignin extends Vue {
           KeyCloakService.initSession()
           // emitting event for the header to get updated with :key increment from the parent component
           this.$emit('keycloak-session-ready')
-          if (this.idpHint === 'bcsc' || this.idpHint === 'idir') {
-            // tell KeycloakServices to load the user info
-            this.loadUserInfo()
-            // sync the account if there is one
-            await this.syncAccount()
-            this.$emit('sync-user-profile-ready')
-            // eslint-disable-next-line no-console
-            console.info('[SignIn.vue]Logged in User.Starting refreshTimer')
-            let tokenService = new TokenService()
-            await tokenService.init()
-            tokenService.scheduleRefreshTimer()
-          }
+          // tell KeycloakServices to load the user info
+          this.loadUserInfo()
+          // sync the account if there is one
+          await this.syncAccount()
+          this.$emit('sync-user-profile-ready')
+          // eslint-disable-next-line no-console
+          console.info('[SignIn.vue]Logged in User.Starting refreshTimer')
+          let tokenService = new TokenService()
+          await tokenService.init()
+          tokenService.scheduleRefreshTimer()
           resolve()
         }
       })
