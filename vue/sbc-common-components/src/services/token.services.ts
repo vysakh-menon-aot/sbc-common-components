@@ -1,12 +1,16 @@
 import Keycloak, { KeycloakInitOptions, KeycloakInstance } from 'keycloak-js'
 import ConfigHelper from '../util/config-helper'
 import { SessionStorageKeys } from '../util/constants'
+import { getModule } from 'vuex-module-decorators'
+import AuthModule from '../store/modules/auth'
+import { Store } from 'vuex'
 
 class TokenServices {
   private kc: KeycloakInstance | undefined
   private counter = 0
   private REFRESH_ATTEMPT_INTERVAL = 10 // in seconds
   private timerId = 0
+  private store: Store<any> | null = null
 
   initUsingKc (kcInstance: KeycloakInstance) {
     this.kc = kcInstance
@@ -18,9 +22,10 @@ class TokenServices {
     await this.init()
   }
 
-  async init () {
+  async init (store?: Store<any>) {
+    this.store = store
     const kcOptions: KeycloakInitOptions = {
-      onLoad: 'login-required',
+      onLoad: 'check-sso',
       checkLoginIframe: false,
       timeSkew: 0,
       token: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) || undefined,
@@ -33,15 +38,13 @@ class TokenServices {
       this.kc.init(kcOptions)
         .success(authenticated => {
           console.info('[TokenServices] is User Authenticated?: Syncing ' + authenticated)
-          const preventStorageSync = ConfigHelper.getFromSession(SessionStorageKeys.PreventStorageSync) || false
-          if (this.kc) {
-            if (!preventStorageSync) {
-              this.syncSessionStorage()
-            }
-            ConfigHelper.removeFromSession(SessionStorageKeys.PreventStorageSync)
+          if (this.kc && authenticated) {
+            this.syncSessionStorage()
             resolve(this.kc.token)
           } else {
-            reject(new Error('Could not Initialize KC'))
+            // If not authenticated that means token is invalid
+            // Clear out session storage and go to auth home (TODO: Perhaps make this a propery parent apps could pass in?)
+            this.clearSession()
           }
         })
         .error(error => {
@@ -126,6 +129,20 @@ class TokenServices {
       if (this.kc.idToken) {
         ConfigHelper.addToSession(SessionStorageKeys.KeyCloakIdToken, this.kc.idToken)
       }
+    }
+  }
+
+  private async clearSession () {
+    if (this.store) {
+      const authModule = getModule(AuthModule, this.store)
+      authModule.clearSession()
+    } else {
+      ConfigHelper.removeFromSession(SessionStorageKeys.KeyCloakToken)
+      ConfigHelper.removeFromSession(SessionStorageKeys.KeyCloakIdToken)
+      ConfigHelper.removeFromSession(SessionStorageKeys.KeyCloakRefreshToken)
+      ConfigHelper.removeFromSession(SessionStorageKeys.UserFullName)
+      ConfigHelper.removeFromSession(SessionStorageKeys.UserKcId)
+      ConfigHelper.removeFromSession(SessionStorageKeys.UserAccountType)
     }
   }
 
