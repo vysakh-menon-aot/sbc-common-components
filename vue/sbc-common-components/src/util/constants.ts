@@ -8,5 +8,6 @@ export enum SessionStorageKeys {
   PreventStorageSync = 'PREVENT_STORAGE_SYNC',
   UserAccountType = 'USER_ACCOUNT_TYPE',
   LaunchDarklyFlags = 'LD_FLAGS',
-  CurrentAccount = 'CURRENT_ACCOUNT'
+  CurrentAccount = 'CURRENT_ACCOUNT',
+  AuthApiUrl = 'AUTH_API_URL'
 }
