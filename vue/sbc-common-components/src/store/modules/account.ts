@@ -31,7 +31,7 @@ export default class AccountModule extends VuexModule {
   }
 
   get username (): string {
-    return this.currentUser?.fullName || '-'
+    return `${this.currentUser?.firstName || '-'} ${this.currentUser?.lastName || ''}`
   }
 
   @Mutation
