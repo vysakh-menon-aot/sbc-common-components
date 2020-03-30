@@ -72,7 +72,7 @@
               </v-list-item-content>
             </v-list-item>
             <!-- BEGIN: Hide if authentication is IDIR -->
-            <v-list-item @click="goToUserProfile()" v-if="accountType !== 'IDIR'">
+            <v-list-item @click="goToUserProfile()" v-if="accountType === 'BCSC'">
               <v-list-item-icon left>
                 <v-icon>mdi-account-outline</v-icon>
               </v-list-item-icon>
