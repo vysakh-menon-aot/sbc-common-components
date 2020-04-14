@@ -45,6 +45,7 @@ class TokenServices {
             // If not authenticated that means token is invalid
             // Clear out session storage and go to auth home (TODO: Perhaps make this a propery parent apps could pass in?)
             this.clearSession()
+            reject(new Error('Not authenticated'))
           }
         })
         .error(error => {
