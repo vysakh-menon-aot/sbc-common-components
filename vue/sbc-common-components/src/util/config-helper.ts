@@ -30,7 +30,7 @@ export default class ConfigHelper {
 
   static getAuthContextPath (): string {
     const apiConfig = JSON.parse(sessionStorage.getItem(SessionStorageKeys.ApiConfigKey) || '{}')
-    return apiConfig ? apiConfig['AUTH_URL'] : ''
+    return (apiConfig && apiConfig['AUTH_URL']) || sessionStorage.getItem('AUTH_URL') || ''
   }
 
   static setKeycloakConfigUrl (keycloakConfigUrl: string) {
