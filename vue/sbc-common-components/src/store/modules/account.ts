@@ -113,8 +113,10 @@ export default class AccountModule extends VuexModule {
       case 'BCROS':
       default:
         const lastUsedAccount = getLastAccountId()
-        await this.syncUserSettings(lastUsedAccount)
-        ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(this.currentAccount || ''))
+        if (ConfigHelper.getFromSession(SessionStorageKeys.UserKcId)) {
+          await this.syncUserSettings(lastUsedAccount)
+          ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(this.currentAccount || ''))
+        }
     }
   }
 }
