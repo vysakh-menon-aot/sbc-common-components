@@ -75,14 +75,14 @@ import { getModule } from 'vuex-module-decorators'
 @Component({
   name: 'SbcProductSelector',
   beforeCreate () {
-    this.$store.hasModule = function (aPath: string[]) {
+    this.$store.isModuleRegistered = function (aPath: string[]) {
       let m = (this as any)._modules.root
       return aPath.every((p) => {
         m = m._children[p]
         return m
       })
     }
-    if (!this.$store.hasModule(['product'])) {
+    if (!this.$store.isModuleRegistered(['product'])) {
       this.$store.registerModule('product', ProductModule)
     }
     this.$options.computed = {

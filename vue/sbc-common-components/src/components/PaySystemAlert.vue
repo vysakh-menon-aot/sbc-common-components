@@ -26,14 +26,14 @@ declare module 'vuex' {
     SbcSystemBanner
   },
   beforeCreate () {
-    this.$store.hasModule = function (aPath: string[]) {
+    this.$store.isModuleRegistered = function (aPath: string[]) {
       let m = (this as any)._modules.root
       return aPath.every((p) => {
         m = m._children[p]
         return m
       })
     }
-    if (!this.$store.hasModule(['status'])) {
+    if (!this.$store.isModuleRegistered(['status'])) {
       this.$store.registerModule('status', StatusModule)
     }
     this.$options.computed = {

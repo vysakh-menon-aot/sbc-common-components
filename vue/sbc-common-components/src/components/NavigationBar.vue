@@ -69,17 +69,17 @@ import { UserSettings } from '../models/userSettings'
 @Component({
   name: 'NavigationBar',
   beforeCreate () {
-    this.$store.hasModule = function (aPath: string[]) {
+    this.$store.isModuleRegistered = function (aPath: string[]) {
       let m = (this as any)._modules.root
       return aPath.every((p) => {
         m = m._children[p]
         return m
       })
     }
-    if (!this.$store.hasModule(['account'])) {
+    if (!this.$store.isModuleRegistered(['account'])) {
       this.$store.registerModule('account', AccountModule)
     }
-    if (!this.$store.hasModule(['auth'])) {
+    if (!this.$store.isModuleRegistered(['auth'])) {
       this.$store.registerModule('auth', AuthModule)
     }
     this.$options.computed = {
