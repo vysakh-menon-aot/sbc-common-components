@@ -38,7 +38,7 @@ def convert_to_camel(response):
                 key = camelcase(key)
                 if isinstance(value, dict):
                     camel_dict[key] = camelcase_dict(value, {})
-                if isinstance(value, list):
+                elif isinstance(value, list):
                     camel_dict[key] = []
                     for list_value in value:
                         camel_dict[key].append(
