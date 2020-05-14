@@ -109,6 +109,14 @@
               </v-list-item-icon>
               <v-list-item-title>Team Members</v-list-item-title>
             </v-list-item>
+            <v-list-item
+              v-if="showTransactions"
+              @click="goToTransactions()">
+              <v-list-item-icon left>
+                <v-icon>mdi-file-document-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Transactions</v-list-item-title>
+            </v-list-item>
           </v-list>
 
           <v-divider></v-divider>
@@ -143,6 +151,7 @@ import AccountModule from '../store/modules/account'
 import AuthModule from '../store/modules/auth'
 import { KCUserProfile } from '../models/KCUserProfile'
 import keycloakService from '../services/keycloak.services'
+import LaunchDarklyService from '../services/launchdarkly.services'
 import SbcProductSelector from './SbcProductSelector.vue'
 
 declare module 'vuex' {
@@ -204,21 +213,14 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   @Prop({ default: false }) showProductSelector!: boolean;
 
   get showAccountSwitching (): boolean {
-    try {
-      const flags = JSON.parse(ConfigHelper.getFromSession(SessionStorageKeys.LaunchDarklyFlags) || '{}')
-      return flags && flags['account-switching']
-    } catch (exception) {
-      return false
-    }
+    return LaunchDarklyService.getFlag('account-switching') || false
+  }
+
+  get showTransactions (): boolean {
+    return LaunchDarklyService.getFlag('transaction-history') || false
   }
 
   private async mounted () {
-    // Initialize LaunchDarkly flags and sync to session storage
-    // const user = { 'key': 'sbc-common-components' }
-    // this.ldClient = initialize('5db9da115f58e008123cd783', user)
-    // this.ldClient.on('ready', () => {
-    //   ConfigHelper.addToSession(SessionStorageKeys.LaunchDarklyFlags, JSON.stringify(this.ldClient.allFlags()))
-    // })
     getModule(AccountModule, this.$store)
     getModule(AuthModule, this.$store)
     this.syncWithSessionStorage()
@@ -264,6 +266,17 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
       this.navigateTo(ConfigHelper.getAuthContextPath(), `account/${this.currentAccount.id}/settings/team-members`)
     } else {
       window.location.assign(`${ConfigHelper.getAuthContextPath()}account/${this.currentAccount.id}/settings/team-members`)
+    }
+  }
+
+  private goToTransactions () {
+    if (!this.currentAccount) {
+      return
+    }
+    if (this.inAuth) {
+      this.navigateTo(ConfigHelper.getAuthContextPath(), `account/${this.currentAccount.id}/settings/transactions`)
+    } else {
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}account/${this.currentAccount.id}/settings/transactions`)
     }
   }
 
