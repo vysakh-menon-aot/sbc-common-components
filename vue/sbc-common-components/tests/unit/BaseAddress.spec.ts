@@ -525,9 +525,6 @@ describe('BaseAddress - validation rules', () => {
 
     // Check that 'must be Canada' message is displayed.
     expect(wrapper.find('[name="address-form"]').text()).toContain('Address must be in Canada')
-
-    // Check that country input control is readonly.
-    expect(wrapper.find('.address-country input').attributes('readonly')).toBe('readonly')
   })
 
   it('handles "isBC" rule', async () => {
@@ -553,9 +550,6 @@ describe('BaseAddress - validation rules', () => {
 
     // Check that 'must be Canada' message is displayed.
     expect(wrapper.find('[name="address-form"]').text()).toContain('Address must be in BC')
-
-    // Check that region input control is readonly.
-    expect(wrapper.find('.address-region input').attributes('readonly')).toBe('readonly')
   })
 })
 

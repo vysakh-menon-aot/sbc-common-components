@@ -63,5 +63,5 @@ typings/
 # pycharm
 .idea/
 
-package-lock.json
+# Yarn lockfile
 yarn.lock

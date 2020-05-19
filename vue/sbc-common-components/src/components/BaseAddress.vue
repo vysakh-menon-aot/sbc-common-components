@@ -72,7 +72,6 @@
                     v-model="addressLocal.addressRegion"
                     :items="getCountryRegions(addressCountry)"
                     :rules="[...rules.addressRegion, ...spaceRules]"
-                    :readonly="isSchemaBC()"
           />
           <v-text-field v-else
                         filled
@@ -80,7 +79,6 @@
                         :label="addressRegionLabel"
                         v-model="addressLocal.addressRegion"
                         :rules="[...rules.addressRegion, ...spaceRules]"
-                        :readonly="isSchemaBC()"
           />
           <v-text-field filled
                         class="item postal-code"
@@ -99,7 +97,6 @@
                     v-model="addressLocal.addressCountry"
                     :items="getCountries()"
                     :rules="[...rules.addressCountry, ...spaceRules]"
-                    :readonly="isSchemaCanada()"
           />
           <!-- special field to select PCA country, separate from our model field -->
           <!-- NB: "name" attribute is needed for moveElementId() -->
@@ -245,25 +242,12 @@ export default class BaseAddress extends Mixins(ValidationMixin, CountriesProvin
     return 'Delivery Instructions' + (this.isSchemaRequired('deliveryInstructions') ? '' : ' (Optional)')
   }
 
-  /**
-   * Helpers to check schema validations.
-   * @returns Whether the subject schema validation is present.
-   */
+  /** Whether the specified prop is required according to the schema. */
   private isSchemaRequired (prop: string): boolean {
     return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].required)
   }
 
-  private isSchemaCanada (prop: string = 'addressCountry'): boolean {
-    return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].isCanada)
-  }
-
-  private isSchemaBC (prop: string = 'addressRegion'): boolean {
-    return Boolean(this.schemaLocal && this.schemaLocal[prop] && this.schemaLocal[prop].isBC)
-  }
-
-  /**
-   * Array of validation rules used by input elements to prevent extra whitespace.
-   */
+  /** Array of validation rules used by input elements to prevent extra whitespace. */
   private readonly spaceRules: Array<Function> = [
     v => !/^\s/g.test(v) || 'Invalid spaces', // leading spaces
     v => !/\s$/g.test(v) || 'Invalid spaces', // trailing spaces
