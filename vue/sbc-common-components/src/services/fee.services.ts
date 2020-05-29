@@ -23,7 +23,7 @@ export default {
         Promise.resolve()
       }
       let url = prepareUrl(filing, payApiUrl)
-      promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}`, 'Account-Id' : accountId} }))
+      promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}`, 'Account-Id' : accountId } }))
     }
 
     return Axios.all(promises)
