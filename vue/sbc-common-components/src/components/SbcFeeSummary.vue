@@ -38,7 +38,7 @@
           v-if="lineItem.serviceFees"
           :key="lineItem.filingType+'-transaction'"
           >
-          <div class="fee-list__item-name pl-3">Transaction Fee</div>
+          <div class="fee-list__item-name pl-3">Service Fee</div>
           <div class="fee-list__item-value">{{lineItem.serviceFees | currency}}</div>
         </li>
       </template>
