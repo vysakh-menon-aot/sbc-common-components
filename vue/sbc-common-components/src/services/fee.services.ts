@@ -11,6 +11,7 @@ const API_URL = 'https://pay-api-dev.pathfinder.gov.bc.ca/api/v1/fees'
 export default {
   getFee (filingData: FilingData[], payApiUrl: string) : Promise<Fee[]> {
     const token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
+    const accountId = JSON.parse(ConfigHelper.getFromSession(SessionStorageKeys.CurrentAccount) || '{}').id || 0
 
     if (filingData.length < 1) {
       Promise.resolve()
@@ -22,7 +23,7 @@ export default {
         Promise.resolve()
       }
       let url = prepareUrl(filing, payApiUrl)
-      promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}` } }))
+      promises.push(Axios.get(url, { headers: { Authorization: `Bearer ${token}`, 'Account-Id' : accountId} }))
     }
 
     return Axios.all(promises)
