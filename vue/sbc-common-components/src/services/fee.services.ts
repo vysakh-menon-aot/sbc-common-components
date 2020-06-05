@@ -35,8 +35,7 @@ export default {
             const filingDatum = filingData.find(fd => fd.filingTypeCode === data.filingTypeCode)
             // default the title if client hasn't passed this on
             const filingType = (filingDatum && filingDatum.filingDescription) ? filingDatum.filingDescription : data.filingType
-            // total fees is a sum of filingFees,serviceFees,processingFees , gst , pst
-            const fee = data.filingFees + data.serviceFees + data.processingFees + data.tax.gst + data.tax.pst
+            const fee = data.filingFees
             const priorityFees = (data.priorityFees) || 0
             const futureEffectiveFees = (data.futureEffectiveFees) || 0
             const serviceFees = (data.serviceFees) || 0
