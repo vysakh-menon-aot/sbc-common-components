@@ -11,3 +11,9 @@ export enum SessionStorageKeys {
   CurrentAccount = 'CURRENT_ACCOUNT',
   AuthApiUrl = 'AUTH_API_URL'
 }
+
+export enum Account {
+  ANONYMOUS = 'ANONYMOUS',
+  PREMIUM = 'PREMIUM',
+  BASIC = 'BASIC',
+}

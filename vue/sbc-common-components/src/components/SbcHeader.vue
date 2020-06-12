@@ -140,8 +140,8 @@
 <script lang="ts">
 import { Component, Mixins, Prop } from 'vue-property-decorator'
 import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
+import { SessionStorageKeys, Account } from '../util/constants'
 import ConfigHelper from '../util/config-helper'
-import { SessionStorageKeys } from '../util/constants'
 import { mapState, mapActions, mapGetters } from 'vuex'
 import { UserSettings } from '../models/userSettings'
 import Vue from 'vue'
@@ -217,7 +217,8 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   }
 
   get showTransactions (): boolean {
-    return LaunchDarklyService.getFlag('transaction-history') || false
+    return (LaunchDarklyService.getFlag('transaction-history') || false) &&
+      (this.currentAccount?.accountType === Account.PREMIUM)
   }
 
   private async mounted () {
