@@ -19,11 +19,33 @@
         <!-- Product Selector -->
         <sbc-product-selector v-if="showProductSelector" />
 
-        <v-btn color="#fcba19" class="log-in-btn" v-if="!isAuthenticated" @click="login()">
-          <slot name="login-button-text">
-            Log in with BC Services Card
-          </slot>
-        </v-btn>
+        <div  v-if="!isAuthenticated">
+          <v-menu bottom left fixed transition="slide-y-transition" width="330">
+            <template v-slot:activator="{ on }">
+              <v-btn large text dark class="font-weight-bold px-4" v-on="on">
+                Log in
+                <v-icon class="ml-1 mr-n2">mdi-menu-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list tile dense>
+              <v-subheader>Select login method</v-subheader>
+              <v-list-item
+                v-for="loginOption in loginOptions"
+                :key="loginOption.idpHint"
+                @click="login(loginOption.idpHint)"
+                class="pr-6"
+              >
+                <v-list-item-icon left>
+                  <v-icon>{{loginOption.icon}}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>{{loginOption.option}}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          <!--
+          <v-btn large text dark class="font-weight-bold px-4">Create Account</v-btn>
+          -->
+        </div>
 
         <!-- Messages -->
         <v-menu bottom left fixed transition="slide-y-transition" v-if="isAuthenticated">
@@ -52,7 +74,7 @@
         </v-menu>
 
         <!-- Account -->
-        <v-menu bottom left fixed transition="slide-y-transition" content-class="account-menu" v-if="isAuthenticated">
+        <v-menu bottom left fixed transition="slide-y-transition" v-if="isAuthenticated">
           <template v-slot:activator="{ on }">
             <v-btn text large v-on="on" class="user-account-btn">
               <v-avatar tile left size="32" class="user-avatar">
@@ -60,7 +82,7 @@
               </v-avatar>
               <div class="user-info">
                 <div class="user-name" data-test="user-name">{{ username }}</div>
-                <div class="account-name" v-if="accountType !== 'IDIR'" data-test="account-name">{{ accountName }}</div>
+                <div class="account-name" v-if="!isIDIR" data-test="account-name">{{ accountName }}</div>
               </div>
               <!--
               <v-icon small class="ml-2">mdi-chevron-down</v-icon>
@@ -74,11 +96,11 @@
               </v-list-item-avatar>
               <v-list-item-content class="user-info">
                 <v-list-item-title class="user-name" data-test="menu-user-name">{{ username }}</v-list-item-title>
-                <v-list-item-subtitle class="account-name" v-if="accountType !== 'IDIR'" data-test="menu-account-name">{{ accountName }}</v-list-item-subtitle>
+                <v-list-item-subtitle class="account-name" v-if="!isIDIR" data-test="menu-account-name">{{ accountName }}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
             <!-- BEGIN: Hide if authentication is IDIR -->
-            <v-list-item @click="goToUserProfile()" v-if="accountType === 'BCSC'">
+            <v-list-item @click="goToUserProfile()" v-if="isBCSC">
               <v-list-item-icon left>
                 <v-icon>mdi-account-outline</v-icon>
               </v-list-item-icon>
@@ -95,7 +117,7 @@
 
           <v-divider></v-divider>
 
-          <v-list tile dense v-if="currentAccount && accountType !== 'IDIR'">
+          <v-list tile dense v-if="currentAccount && !isIDIR">
             <v-subheader>ACCOUNT SETTINGS</v-subheader>
             <v-list-item @click="goToAccountInfo(currentAccount)">
               <v-list-item-icon left>
@@ -121,7 +143,7 @@
 
           <v-divider></v-divider>
 
-          <v-list tile dense v-if="accountType !== 'IDIR' && switchableAccounts.length > 1">
+          <v-list tile dense v-if="!isIDIR && switchableAccounts.length > 1">
             <v-subheader>SWITCH ACCOUNT</v-subheader>
             <v-list-item @click="switchAccount(settings, inAuth)" v-for="(settings, id) in switchableAccounts" :key="id">
               <v-list-item-icon left>
@@ -140,7 +162,7 @@
 <script lang="ts">
 import { Component, Mixins, Prop } from 'vue-property-decorator'
 import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
-import { SessionStorageKeys, Account } from '../util/constants'
+import { SessionStorageKeys, Account, IdpHint, LoginSource } from '../util/constants'
 import ConfigHelper from '../util/config-helper'
 import { mapState, mapActions, mapGetters } from 'vuex'
 import { UserSettings } from '../models/userSettings'
@@ -178,7 +200,7 @@ declare module 'vuex' {
     this.$options.computed = {
       ...(this.$options.computed || {}),
       ...mapState('account', ['currentAccount', 'pendingApprovalCount']),
-      ...mapGetters('account', ['accountName', 'accountType', 'switchableAccounts', 'username']),
+      ...mapGetters('account', ['accountName', 'loginSource', 'switchableAccounts', 'username']),
       ...mapGetters('auth', ['isAuthenticated'])
     }
     this.$options.methods = {
@@ -197,7 +219,7 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   private readonly pendingApprovalCount!: number
   private readonly username!: string
   private readonly accountName!: string
-  private readonly accountType!: string
+  private readonly loginSource!: string
   private readonly isAuthenticated!: boolean
   private readonly switchableAccounts!: UserSettings[]
   private readonly loadUserInfo!: () => KCUserProfile
@@ -209,8 +231,25 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   @Prop({ default: '' }) redirectOnLoginFail!: string;
   @Prop({ default: '' }) redirectOnLogout!: string;
   @Prop({ default: false }) inAuth!: boolean;
-  @Prop({ default: '' }) idpHint!: string;
   @Prop({ default: false }) showProductSelector!: boolean;
+
+  private readonly loginOptions = [
+    {
+      idpHint: IdpHint.BCSC,
+      option: 'BC Services Card',
+      icon: 'mdi-smart-card-outline'
+    },
+    {
+      idpHint: IdpHint.BCEID,
+      option: 'BCeID',
+      icon: 'mdi-two-factor-authentication'
+    },
+    {
+      idpHint: IdpHint.IDIR,
+      option: 'IDIR',
+      icon: 'mdi-account-group-outline'
+    }
+  ]
 
   get showAccountSwitching (): boolean {
     return LaunchDarklyService.getFlag('account-switching') || false
@@ -219,6 +258,14 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   get showTransactions (): boolean {
     return (LaunchDarklyService.getFlag('transaction-history') || false) &&
       (this.currentAccount?.accountType === Account.PREMIUM)
+  }
+
+  get isIDIR (): boolean {
+    return this.loginSource === LoginSource.IDIR
+  }
+
+  get isBCSC (): boolean {
+    return this.loginSource === LoginSource.BCSC
   }
 
   private async mounted () {
@@ -304,13 +351,13 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
     }
   }
 
-  login () {
+  login (idpHint) {
     if (this.redirectOnLoginSuccess) {
       let url = encodeURIComponent(this.redirectOnLoginSuccess)
       url += this.redirectOnLoginFail ? `/${encodeURIComponent(this.redirectOnLoginFail)}` : ''
-      window.location.assign(`${this.getContextPath()}signin/${this.idpHint}/${url}`)
+      window.location.assign(`${this.getContextPath()}signin/${idpHint}/${url}`)
     } else {
-      window.location.assign(`${this.getContextPath()}signin/${this.idpHint}`)
+      window.location.assign(`${this.getContextPath()}signin/${idpHint}`)
     }
   }
 
@@ -437,13 +484,8 @@ $app-header-font-color: #ffffff;
   }
 }
 
-// Account Menu
-.account-menu {
-  background: #ffffff;
-}
-
-.account-menu__info {
-  font-size: 0.875rem;
+.v-menu {
+  background-color: #ffffff;
 }
 
 .v-list {
@@ -475,19 +517,23 @@ $app-header-font-color: #ffffff;
 }
 
 .log-in-btn {
-  color: $BCgovBlue5;
-  background-color: $BCgovGold4;
   font-weight: 700;
 }
 
-.v-list--dense .v-subheader {
-  padding-right: 1rem;
-  padding-left: 1rem;
+.v-list--dense .v-subheader,
+.v-list-item {
+  padding-right: 1.25rem;
+  padding-left: 1.25rem;
+}
+
+.v-list--dense .v-subheader,
+.v-list--dense .v-list-item__title,
+.v-list--dense .v-list-item__subtitle {
+  font-size: 0.875rem !important;
 }
 
 .v-subheader {
   color: $gray9 !important;
-  font-size: 0.875rem;
   font-weight: 700;
 }
 </style>

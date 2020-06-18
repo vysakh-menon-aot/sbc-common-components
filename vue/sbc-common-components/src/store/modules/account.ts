@@ -5,7 +5,7 @@ import { UserSettings } from '../../models/userSettings'
 import { KCUserProfile } from '../../models/KCUserProfile'
 import KeyCloakService from '../../services/keycloak.services'
 import ConfigHelper from '../../util/config-helper'
-import { SessionStorageKeys } from '../../util/constants'
+import { SessionStorageKeys, LoginSource } from '../../util/constants'
 
 @Module({
   name: 'account',
@@ -22,8 +22,8 @@ export default class AccountModule extends VuexModule {
     return this.currentAccount && this.currentAccount.label
   }
 
-  get accountType (): string {
-    return ConfigHelper.getFromSession(SessionStorageKeys.UserAccountType) || 'BCSC'
+  get loginSource (): string {
+    return ConfigHelper.getFromSession(SessionStorageKeys.UserAccountType) || LoginSource.BCSC
   }
 
   get switchableAccounts () {
@@ -72,7 +72,7 @@ export default class AccountModule extends VuexModule {
     if (response && response.data) {
       const orgs = response.data.filter(userSettings => (userSettings.type === 'ACCOUNT'))
       this.context.commit('setCurrentAccount', currentAccountId ? orgs.find(org => String(org.id) === currentAccountId) : orgs[0])
-      if (this.currentUser?.loginSource === 'BCSC') {
+      if (this.currentUser?.loginSource === LoginSource.BCSC) {
         await this.context.dispatch('fetchPendingApprovalCount')
       }
       return orgs
@@ -106,11 +106,11 @@ export default class AccountModule extends VuexModule {
       return orgIdFromUrl || String(storageAccountId || '') || ''
     }
 
-    switch (this.accountType) {
-      case 'IDIR':
+    switch (this.loginSource) {
+      case LoginSource.IDIR:
         break
-      case 'BCSC':
-      case 'BCROS':
+      case LoginSource.BCSC:
+      case LoginSource.BCROS:
       default:
         const lastUsedAccount = getLastAccountId()
         if (ConfigHelper.getFromSession(SessionStorageKeys.UserKcId)) {

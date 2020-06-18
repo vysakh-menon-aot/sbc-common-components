@@ -17,3 +17,17 @@ export enum Account {
   PREMIUM = 'PREMIUM',
   BASIC = 'BASIC',
 }
+
+export enum IdpHint {
+  BCROS = 'bcros',
+  IDIR = 'idir',
+  BCSC = 'bcsc',
+  BCEID = 'bceid'
+}
+
+export enum LoginSource {
+  BCROS = 'BCROS',
+  IDIR = 'IDIR',
+  BCSC = 'BCSC',
+  BCEID = 'BCEID'
+}
