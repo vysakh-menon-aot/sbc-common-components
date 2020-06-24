@@ -6,6 +6,7 @@ import { KCUserProfile } from '../../models/KCUserProfile'
 import KeyCloakService from '../../services/keycloak.services'
 import ConfigHelper from '../../util/config-helper'
 import { SessionStorageKeys, LoginSource } from '../../util/constants'
+import UserService from '@/services/user.services'
 
 @Module({
   name: 'account',
@@ -95,6 +96,23 @@ export default class AccountModule extends VuexModule {
     return userSetting
   }
 
+  @Action({ rawError: true, commit: 'setCurrentUser' })
+  public async syncUserProfile () {
+    // TODO improve the logic of not fetching the first name last name every time of header mounted
+    const response = await UserService.getUserProfile('@me')
+    if (response && response.data) {
+      const userProfile = response.data
+      // update the first name and last name for the users
+      const updateProfile:KCUserProfile = {
+        ...this.currentUser,
+        lastName: response.data.lastname,
+        firstName: userProfile.firstname
+
+      }
+      return updateProfile
+    }
+  }
+
   @Action({ rawError: true })
   public async syncAccount () {
     function getLastAccountId (): string {
@@ -110,6 +128,7 @@ export default class AccountModule extends VuexModule {
       case LoginSource.IDIR:
         break
       case LoginSource.BCSC:
+      case LoginSource.BCEID:
       case LoginSource.BCROS:
       default:
         const lastUsedAccount = getLastAccountId()

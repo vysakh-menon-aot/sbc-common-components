@@ -100,7 +100,7 @@
               </v-list-item-content>
             </v-list-item>
             <!-- BEGIN: Hide if authentication is IDIR -->
-            <v-list-item @click="goToUserProfile()" v-if="isBCSC">
+            <v-list-item @click="goToUserProfile()" v-if="isBcscOrBceid">
               <v-list-item-icon left>
                 <v-icon>mdi-account-outline</v-icon>
               </v-list-item-icon>
@@ -160,7 +160,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Prop } from 'vue-property-decorator'
+import { Component, Mixins, Prop, Watch } from 'vue-property-decorator'
 import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
 import { SessionStorageKeys, Account, IdpHint, LoginSource } from '../util/constants'
 import ConfigHelper from '../util/config-helper'
@@ -205,7 +205,7 @@ declare module 'vuex' {
     }
     this.$options.methods = {
       ...(this.$options.methods || {}),
-      ...mapActions('account', ['loadUserInfo', 'syncAccount', 'syncCurrentAccount']),
+      ...mapActions('account', ['loadUserInfo', 'syncAccount', 'syncCurrentAccount', 'syncUserProfile']),
       ...mapActions('auth', ['syncWithSessionStorage'])
     }
   },
@@ -225,6 +225,7 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   private readonly loadUserInfo!: () => KCUserProfile
   private readonly syncAccount!: () => Promise<void>
   private readonly syncCurrentAccount!: (userSettings: UserSettings) => Promise<UserSettings>
+  private readonly syncUserProfile!: () => Promise<void>
   private readonly syncWithSessionStorage!: () => void
 
   @Prop({ default: '' }) redirectOnLoginSuccess!: string;
@@ -264,8 +265,12 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
     return this.loginSource === LoginSource.IDIR
   }
 
-  get isBCSC (): boolean {
-    return this.loginSource === LoginSource.BCSC
+  get isBceid (): boolean {
+    return this.loginSource === LoginSource.BCEID
+  }
+
+  get isBcscOrBceid (): boolean {
+    return [LoginSource.BCSC.valueOf(), LoginSource.BCEID.valueOf()].indexOf(this.loginSource) >= 0
   }
 
   private async mounted () {
@@ -273,8 +278,22 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
     getModule(AuthModule, this.$store)
     this.syncWithSessionStorage()
     if (this.isAuthenticated) {
-      this.loadUserInfo()
+      await this.loadUserInfo()
       await this.syncAccount()
+      await this.updateProfile()
+    }
+  }
+
+  @Watch('isAuthenticated')
+  private async onisAuthenticated (isAuthenitcated: string, oldVal: string) {
+    if (isAuthenitcated) {
+      await this.updateProfile()
+    }
+  }
+
+  private async updateProfile () {
+    if (this.isBceid) {
+      await this.syncUserProfile()
     }
   }
 
