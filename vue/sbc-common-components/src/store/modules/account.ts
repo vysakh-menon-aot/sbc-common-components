@@ -6,7 +6,7 @@ import { KCUserProfile } from '../../models/KCUserProfile'
 import KeyCloakService from '../../services/keycloak.services'
 import ConfigHelper from '../../util/config-helper'
 import { SessionStorageKeys, LoginSource } from '../../util/constants'
-import UserService from '@/services/user.services'
+import UserService from '../../services/user.services'
 
 @Module({
   name: 'account',
