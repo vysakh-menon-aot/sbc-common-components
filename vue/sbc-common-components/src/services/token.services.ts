@@ -35,17 +35,19 @@ class TokenServices {
 
     return new Promise((resolve, reject) => {
       this.kc = Keycloak(ConfigHelper.getKeycloakConfigUrl())
+      ConfigHelper.addToSession(SessionStorageKeys.SessionSynced, false)
       this.kc.init(kcOptions)
         .success(authenticated => {
           console.info('[TokenServices] is User Authenticated?: Syncing ' + authenticated)
           if (this.kc && authenticated) {
+            ConfigHelper.addToSession(SessionStorageKeys.SessionSynced, true)
             this.syncSessionStorage()
             resolve(this.kc.token)
           } else {
             // If not authenticated that means token is invalid
             // Clear out session storage and go to auth home (TODO: Perhaps make this a propery parent apps could pass in?)
             this.clearSession()
-            reject(new Error('Not authenticated'))
+            reject(new Error('NOT_AUTHENTICATED'))
           }
         })
         .error(error => {
@@ -147,7 +149,7 @@ class TokenServices {
     }
   }
 
-  decodeToken () {
+  static decodeToken () {
     try {
       const token = ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)
       if (token) {
