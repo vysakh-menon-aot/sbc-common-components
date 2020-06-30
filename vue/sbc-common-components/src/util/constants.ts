@@ -9,7 +9,8 @@ export enum SessionStorageKeys {
   UserAccountType = 'USER_ACCOUNT_TYPE',
   LaunchDarklyFlags = 'LD_FLAGS',
   CurrentAccount = 'CURRENT_ACCOUNT',
-  AuthApiUrl = 'AUTH_API_URL'
+  AuthApiUrl = 'AUTH_API_URL',
+  SessionSynced = 'SESSION_SYNCED'
 }
 
 export enum Account {

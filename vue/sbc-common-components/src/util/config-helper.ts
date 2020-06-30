@@ -1,5 +1,5 @@
 import { SessionStorageKeys } from './constants'
-import TokenServices from 'sbc-common-components/src/services/token.services'
+import TokenService from '../services/token.services'
 
 export default class ConfigHelper {
   static keycloakConfigUrl: string = ''
@@ -45,7 +45,7 @@ export default class ConfigHelper {
   static getCurrentUserSub (): string {
     let userSubject = ConfigHelper.getFromSession(SessionStorageKeys.UserKcId)
     if (!userSubject && ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
-      userSubject = TokenServices.decodeToken().sub
+      userSubject = TokenService.decodeToken().sub
     }
     return userSubject
   }
