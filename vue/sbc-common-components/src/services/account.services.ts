@@ -14,10 +14,10 @@ export default class AccountService {
   }
 
   static getPendingMemberCount (accountId: number): Promise<AxiosResponse<Count>> {
-    return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/${ConfigHelper.getFromSession(SessionStorageKeys.UserKcId)}/org/${accountId}/notifications`)
+    return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/${ConfigHelper.getCurrentUserSub()}/org/${accountId}/notifications`)
   }
 
   static getUserSettings (): Promise<AxiosResponse<UserSettings[]>> {
-    return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/${ConfigHelper.getFromSession(SessionStorageKeys.UserKcId)}/settings`)
+    return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/${ConfigHelper.getCurrentUserSub()}/settings`)
   }
 }
