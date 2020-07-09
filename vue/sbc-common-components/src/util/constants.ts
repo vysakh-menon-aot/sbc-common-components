@@ -3,10 +3,7 @@ export enum SessionStorageKeys {
   KeyCloakRefreshToken = 'KEYCLOAK_REFRESH_TOKEN',
   KeyCloakIdToken = 'KEYCLOAK_ID_TOKEN',
   ApiConfigKey = 'AUTH_API_CONFIG',
-  UserFullName = 'USER_FULL_NAME',
-  UserKcId = 'USER_KC_ID',
   PreventStorageSync = 'PREVENT_STORAGE_SYNC',
-  UserAccountType = 'USER_ACCOUNT_TYPE',
   LaunchDarklyFlags = 'LD_FLAGS',
   CurrentAccount = 'CURRENT_ACCOUNT',
   AuthApiUrl = 'AUTH_API_URL',
@@ -31,4 +28,18 @@ export enum LoginSource {
   IDIR = 'IDIR',
   BCSC = 'BCSC',
   BCEID = 'BCEID'
+}
+
+export enum Role {
+  AccountHolder = 'account_holder',
+  PublicUser = 'public_user'
+}
+
+export enum Pages {
+  HOME = 'home',
+  USER_PROFILE = 'userprofile',
+  ACCOUNT = 'account',
+  SETTINGS = 'settings',
+  CHOOSE_AUTH_METHOD = 'choose-authentication-method',
+  NON_BCSC_INSTRUCTIONS = 'nonbcsc-info/instructions'
 }

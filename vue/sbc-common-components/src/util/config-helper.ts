@@ -41,12 +41,4 @@ export default class ConfigHelper {
   static getKeycloakConfigUrl (): string {
     return this.keycloakConfigUrl
   }
-
-  static getCurrentUserSub (): string {
-    let userSubject = ConfigHelper.getFromSession(SessionStorageKeys.UserKcId)
-    if (!userSubject && ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken)) {
-      userSubject = TokenService.decodeToken().sub
-    }
-    return userSubject
-  }
 }

@@ -162,7 +162,7 @@
 <script lang="ts">
 import { Component, Mixins, Prop, Watch } from 'vue-property-decorator'
 import { initialize, LDClient } from 'launchdarkly-js-client-sdk'
-import { SessionStorageKeys, Account, IdpHint, LoginSource } from '../util/constants'
+import { SessionStorageKeys, Account, IdpHint, LoginSource, Pages } from '../util/constants'
 import ConfigHelper from '../util/config-helper'
 import { mapState, mapActions, mapGetters } from 'vuex'
 import { UserSettings } from '../models/userSettings'
@@ -200,8 +200,8 @@ declare module 'vuex' {
     this.$options.computed = {
       ...(this.$options.computed || {}),
       ...mapState('account', ['currentAccount', 'pendingApprovalCount']),
-      ...mapGetters('account', ['accountName', 'loginSource', 'switchableAccounts', 'username']),
-      ...mapGetters('auth', ['isAuthenticated'])
+      ...mapGetters('account', ['accountName', 'switchableAccounts', 'username']),
+      ...mapGetters('auth', ['isAuthenticated', 'currentLoginSource'])
     }
     this.$options.methods = {
       ...(this.$options.methods || {}),
@@ -219,7 +219,7 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   private readonly pendingApprovalCount!: number
   private readonly username!: string
   private readonly accountName!: string
-  private readonly loginSource!: string
+  private readonly currentLoginSource!: string
   private readonly isAuthenticated!: boolean
   private readonly switchableAccounts!: UserSettings[]
   private readonly loadUserInfo!: () => KCUserProfile
@@ -262,15 +262,15 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   }
 
   get isIDIR (): boolean {
-    return this.loginSource === LoginSource.IDIR
+    return this.currentLoginSource === LoginSource.IDIR
   }
 
   get isBceid (): boolean {
-    return this.loginSource === LoginSource.BCEID
+    return this.currentLoginSource === LoginSource.BCEID
   }
 
   get isBcscOrBceid (): boolean {
-    return [LoginSource.BCSC.valueOf(), LoginSource.BCEID.valueOf()].indexOf(this.loginSource) >= 0
+    return [LoginSource.BCSC.valueOf(), LoginSource.BCEID.valueOf()].indexOf(this.currentLoginSource) >= 0
   }
 
   private async mounted () {
@@ -298,19 +298,11 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
   }
 
   private goToHome () {
-    if (this.inAuth) {
-      this.navigateTo(ConfigHelper.getAuthContextPath(), 'home')
-    } else {
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}home`)
-    }
+    this.redirectToPath(this.inAuth, Pages.HOME)
   }
 
   private goToUserProfile () {
-    if (this.inAuth) {
-      this.navigateTo(ConfigHelper.getAuthContextPath(), 'userprofile')
-    } else {
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}userprofile`)
-    }
+    this.redirectToPath(this.inAuth, Pages.USER_PROFILE)
   }
 
   private async goToAccountInfo (settings: UserSettings) {
@@ -318,33 +310,21 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
       return
     }
     await this.syncCurrentAccount(settings)
-    if (this.inAuth) {
-      this.navigateTo(ConfigHelper.getAuthContextPath(), `account/${this.currentAccount.id}/settings/account-info`)
-    } else {
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}account/${this.currentAccount.id}/settings/account-info`)
-    }
+    this.redirectToPath(this.inAuth, `${Pages.ACCOUNT}/${this.currentAccount.id}/${Pages.SETTINGS}/account-info`)
   }
 
   private goToTeamMembers () {
     if (!this.currentAccount) {
       return
     }
-    if (this.inAuth) {
-      this.navigateTo(ConfigHelper.getAuthContextPath(), `account/${this.currentAccount.id}/settings/team-members`)
-    } else {
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}account/${this.currentAccount.id}/settings/team-members`)
-    }
+    this.redirectToPath(this.inAuth, `${Pages.ACCOUNT}/${this.currentAccount.id}/${Pages.SETTINGS}/team-members`)
   }
 
   private goToTransactions () {
     if (!this.currentAccount) {
       return
     }
-    if (this.inAuth) {
-      this.navigateTo(ConfigHelper.getAuthContextPath(), `account/${this.currentAccount.id}/settings/transactions`)
-    } else {
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}account/${this.currentAccount.id}/settings/transactions`)
-    }
+    this.redirectToPath(this.inAuth, `${Pages.ACCOUNT}/${this.currentAccount.id}/${Pages.SETTINGS}/transactions`)
   }
 
   private async switchAccount (settings: UserSettings, inAuth?: boolean) {
@@ -357,7 +337,7 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
     this.$emit('account-switch-completed')
 
     if (!inAuth) {
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}home`)
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}${Pages.HOME}`)
     }
   }
 

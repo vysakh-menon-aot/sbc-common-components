@@ -13,11 +13,11 @@ export default class AccountService {
     return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/orgs`)
   }
 
-  static getPendingMemberCount (accountId: number): Promise<AxiosResponse<Count>> {
-    return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/${ConfigHelper.getCurrentUserSub()}/org/${accountId}/notifications`)
+  static getPendingMemberCount (accountId: number, currentUserSub: string): Promise<AxiosResponse<Count>> {
+    return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/${currentUserSub}/org/${accountId}/notifications`)
   }
 
-  static getUserSettings (): Promise<AxiosResponse<UserSettings[]>> {
-    return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/${ConfigHelper.getCurrentUserSub()}/settings`)
+  static getUserSettings (currentUserSub: string): Promise<AxiosResponse<UserSettings[]>> {
+    return axios.get(`${ConfigHelper.getAuthAPIUrl()}/users/${currentUserSub}/settings`)
   }
 }

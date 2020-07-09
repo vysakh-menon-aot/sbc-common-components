@@ -1,5 +1,6 @@
 import { Module, VuexModule, Mutation, Action } from 'vuex-module-decorators'
 import ConfigHelper from '../../util/config-helper'
+import KeycloakServices from '../../services/keycloak.services'
 import { SessionStorageKeys } from '../../util/constants'
 
 @Module({
@@ -10,12 +11,19 @@ export default class AuthModule extends VuexModule {
   token: string = ''
   idToken: string = ''
   refreshToken: string = ''
-  userFullName: string = ''
   kcGuid: string = ''
   loginSource: string = ''
 
   get isAuthenticated (): boolean {
     return !!this.token
+  }
+
+  get keycloakGuid (): string {
+    return this.kcGuid || KeycloakServices.getUserInfo().keycloakGuid
+  }
+
+  get currentLoginSource (): string {
+    return this.loginSource || KeycloakServices.getUserInfo().loginSource
   }
 
   @Mutation
@@ -37,21 +45,13 @@ export default class AuthModule extends VuexModule {
   }
 
   @Mutation
-  public setUserFullName (userFullName: string): void {
-    this.userFullName = userFullName
-    ConfigHelper.addToSession(SessionStorageKeys.UserFullName, userFullName)
-  }
-
-  @Mutation
   public setKCGuid (kcGuid: string): void {
     this.kcGuid = kcGuid
-    ConfigHelper.addToSession(SessionStorageKeys.UserKcId, kcGuid)
   }
 
   @Mutation
   public setLoginSource (loginSource: string): void {
     this.loginSource = loginSource
-    ConfigHelper.addToSession(SessionStorageKeys.UserAccountType, loginSource)
   }
 
   @Action({ rawError: true })
@@ -59,7 +59,6 @@ export default class AuthModule extends VuexModule {
     this.context.commit('setKCToken', '')
     this.context.commit('setIDToken', '')
     this.context.commit('setRefreshToken', '')
-    this.context.commit('setUserFullName', '')
     this.context.commit('setKCGuid', '')
     this.context.commit('setLoginSource', '')
   }
@@ -69,8 +68,5 @@ export default class AuthModule extends VuexModule {
     this.context.commit('setKCToken', ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakToken) || '')
     this.context.commit('setIDToken', ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakIdToken) || '')
     this.context.commit('setRefreshToken', ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakRefreshToken) || '')
-    this.context.commit('setUserFullName', ConfigHelper.getFromSession(SessionStorageKeys.UserFullName) || '')
-    this.context.commit('setKCGuid', ConfigHelper.getFromSession(SessionStorageKeys.UserKcId) || '')
-    this.context.commit('setLoginSource', ConfigHelper.getFromSession(SessionStorageKeys.UserAccountType) || '')
   }
 }

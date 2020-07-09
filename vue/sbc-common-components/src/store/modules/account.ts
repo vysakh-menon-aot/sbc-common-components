@@ -23,10 +23,6 @@ export default class AccountModule extends VuexModule {
     return this.currentAccount && this.currentAccount.label
   }
 
-  get loginSource (): string {
-    return ConfigHelper.getFromSession(SessionStorageKeys.UserAccountType) || LoginSource.BCSC
-  }
-
   get switchableAccounts () {
     return this.userSettings && this.userSettings.filter(setting => setting.type === 'ACCOUNT')
   }
@@ -69,8 +65,8 @@ export default class AccountModule extends VuexModule {
 
   @Action({ rawError: true, commit: 'setUserSettings' })
   public async syncUserSettings (currentAccountId: string): Promise<UserSettings[]> {
-    const response = await AccountService.getUserSettings()
-    if (response && response.data) {
+    const response = await AccountService.getUserSettings(this.currentUser?.keycloakGuid)
+    if (response?.data) {
       const orgs = response.data.filter(userSettings => (userSettings.type === 'ACCOUNT'))
       this.context.commit('setCurrentAccount', currentAccountId ? orgs.find(org => String(org.id) === currentAccountId) : orgs[0])
       if (this.currentUser?.loginSource === LoginSource.BCSC) {
@@ -83,8 +79,8 @@ export default class AccountModule extends VuexModule {
 
   @Action({ rawError: true, commit: 'setPendingApprovalCount' })
   public async fetchPendingApprovalCount (): Promise<number> {
-    if (this.context.rootState.account && this.context.rootState.account.currentAccount && this.context.rootState.account.currentAccount.id) {
-      const response = await AccountService.getPendingMemberCount(this.context.rootState.account.currentAccount.id)
+    if (this.context.rootState.account?.currentAccount?.id) {
+      const response = await AccountService.getPendingMemberCount(this.context.rootState.account.currentAccount.id, this.currentUser?.keycloakGuid)
       return (response && response.data && response.data.count) || 0
     } else {
       return 0
@@ -107,7 +103,6 @@ export default class AccountModule extends VuexModule {
         ...this.currentUser,
         lastName: response.data.lastname,
         firstName: userProfile.firstname
-
       }
       return updateProfile
     }
@@ -124,7 +119,7 @@ export default class AccountModule extends VuexModule {
       return orgIdFromUrl || String(storageAccountId || '') || ''
     }
 
-    switch (this.loginSource) {
+    switch (this.currentUser?.loginSource) {
       case LoginSource.IDIR:
         break
       case LoginSource.BCSC:
@@ -132,7 +127,7 @@ export default class AccountModule extends VuexModule {
       case LoginSource.BCROS:
       default:
         const lastUsedAccount = getLastAccountId()
-        if (ConfigHelper.getCurrentUserSub()) {
+        if (this.currentUser?.keycloakGuid) {
           await this.syncUserSettings(lastUsedAccount)
           ConfigHelper.addToSession(SessionStorageKeys.CurrentAccount, JSON.stringify(this.currentAccount || ''))
         }
