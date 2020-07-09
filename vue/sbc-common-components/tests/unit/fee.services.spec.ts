@@ -27,7 +27,7 @@ describe('with 1 fee in the list', () => {
   })
 
   it('should call Axios.get once for each Fee ', () => {
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN`, { 'headers': { 'Account-Id': 0, 'Authorization': 'Bearer null' } })
   })
 })
 
@@ -49,8 +49,8 @@ describe('with 2 fee in the list', () => {
   })
 
   it('should call Axios.get once for each filing code', () => {
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN`, { 'headers': { 'Authorization': 'Bearer null' } })
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTADD`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTANN`, { 'headers': { 'Account-Id': 0, 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/CP/OTADD`, { 'headers': { 'Account-Id': 0, 'Authorization': 'Bearer null' } })
   })
 })
 
@@ -69,6 +69,6 @@ describe('with 1 fee in the list with extra fees', () => {
   })
 
   it('should call Axios.get once with extra fee parameters ', () => {
-    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/BC/BCRSF?priority=true&futureEffective=true`, { 'headers': { 'Authorization': 'Bearer null' } })
+    expect(Axios.get).toHaveBeenCalledWith(`${API_URL}fees/BC/BCRSF?priority=true&futureEffective=true`, { 'headers': { 'Account-Id': 0, 'Authorization': 'Bearer null' } })
   })
 })
