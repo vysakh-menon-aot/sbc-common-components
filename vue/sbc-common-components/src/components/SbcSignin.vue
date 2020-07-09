@@ -34,7 +34,11 @@ import NavigationMixin from '../mixins/navigation-mixin'
     }
     this.$options.methods = {
       ...(this.$options.methods || {}),
-      ...mapActions('account', ['loadUserInfo', 'syncAccount'])
+      ...mapActions('account', [
+        'loadUserInfo',
+        'syncAccount',
+        'getCurrentUserProfile'
+      ])
     }
   }
 })
@@ -45,6 +49,7 @@ export default class SbcSignin extends NavigationMixin {
   @Prop({ default: false }) inAuth!: boolean;
   private readonly loadUserInfo!: () => KCUserProfile
   private readonly syncAccount!: () => Promise<void>
+  private readonly getCurrentUserProfile!: () => Promise<any>
 
   private async mounted () {
     getModule(AccountModule, this.$store)
@@ -62,9 +67,15 @@ export default class SbcSignin extends NavigationMixin {
           // sync the account if there is one
           await this.syncAccount()
 
-          // redirect to create account page if the user has no 'account holder' role
+          const currentUser = await this.getCurrentUserProfile()
+
           const isRedirectToCreateAccount = (userInfo.roles.includes(Role.PublicUser) && !userInfo.roles.includes(Role.AccountHolder))
-          if (isRedirectToCreateAccount) {
+
+          if ((userInfo?.loginSource !== LoginSource.IDIR) && !currentUser?.userTerms?.isTermsOfUseAccepted) {
+            console.log('[SignIn.vue]Redirecting. TOS not accepted')
+            this.redirectToPath(this.inAuth, Pages.USER_PROFILE_TERMS)
+          } else if (isRedirectToCreateAccount) {
+            console.log('[SignIn.vue]Redirecting. No Valid Role')
             switch (userInfo.loginSource) {
               case LoginSource.BCSC:
                 this.redirectToPath(this.inAuth, Pages.CHOOSE_AUTH_METHOD)

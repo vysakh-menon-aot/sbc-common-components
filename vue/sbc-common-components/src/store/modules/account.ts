@@ -109,6 +109,12 @@ export default class AccountModule extends VuexModule {
   }
 
   @Action({ rawError: true })
+  public async getCurrentUserProfile () {
+    const response = await UserService.getUserProfile('@me')
+    return response?.data || {}
+  }
+
+  @Action({ rawError: true })
   public async syncAccount () {
     function getLastAccountId (): string {
       let pathList = window.location.pathname.split('/')

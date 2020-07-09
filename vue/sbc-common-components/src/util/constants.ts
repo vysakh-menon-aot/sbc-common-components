@@ -40,6 +40,7 @@ export enum Pages {
   USER_PROFILE = 'userprofile',
   ACCOUNT = 'account',
   SETTINGS = 'settings',
+  USER_PROFILE_TERMS = 'userprofileterms',
   CHOOSE_AUTH_METHOD = 'choose-authentication-method',
   NON_BCSC_INSTRUCTIONS = 'nonbcsc-info/instructions'
 }
