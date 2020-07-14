@@ -67,31 +67,30 @@ export default class SbcSignin extends NavigationMixin {
           // sync the account if there is one
           await this.syncAccount()
 
-          const currentUser = await this.getCurrentUserProfile()
+          // if not from the sbc-auth, do the checks and redirect to sbc-auth
+          if (!this.inAuth) {
+            // redirect to create account page if the user has no 'account holder' role
+            const isRedirectToCreateAccount = (userInfo.roles.includes(Role.PublicUser) && !userInfo.roles.includes(Role.AccountHolder))
 
-          // redirect to create account page if the user has no 'account holder' role
-          const isRedirectToCreateAccount = (userInfo.roles.includes(Role.PublicUser) && !userInfo.roles.includes(Role.AccountHolder))
+            const currentUser = await this.getCurrentUserProfile()
 
-          if ((userInfo?.loginSource !== LoginSource.IDIR) && !currentUser?.userTerms?.isTermsOfUseAccepted) {
-            console.log('[SignIn.vue]Redirecting. TOS not accepted')
-            this.redirectToPath(this.inAuth, Pages.USER_PROFILE_TERMS)
-          } else if (isRedirectToCreateAccount) {
-            console.log('[SignIn.vue]Redirecting. No Valid Role')
-            switch (userInfo.loginSource) {
-              case LoginSource.BCSC:
-                this.redirectToPath(this.inAuth, Pages.CREATE_ACCOUNT)
-                break
-              case LoginSource.BCEID:
-                this.redirectToPath(this.inAuth, Pages.CHOOSE_AUTH_METHOD)
-                break
+            if ((userInfo?.loginSource !== LoginSource.IDIR) && !currentUser?.userTerms?.isTermsOfUseAccepted) {
+              console.log('[SignIn.vue]Redirecting. TOS not accepted')
+              this.redirectToPath(this.inAuth, Pages.USER_PROFILE_TERMS)
+            } else if (isRedirectToCreateAccount) {
+              console.log('[SignIn.vue]Redirecting. No Valid Role')
+              switch (userInfo.loginSource) {
+                case LoginSource.BCSC:
+                  this.redirectToPath(this.inAuth, Pages.CREATE_ACCOUNT)
+                  break
+                case LoginSource.BCEID:
+                  this.redirectToPath(this.inAuth, Pages.CHOOSE_AUTH_METHOD)
+                  break
+              }
             }
           }
 
-          // emit an event to parent that user profile syncing is completed.
-          // the argument isRedirectToCreateAccount will be used to check in the parent signin view component
-          // to determine whether to perform the redirect on that end,
-          // if the value is true, then the redirection should be happening from this component.
-          this.$emit('sync-user-profile-ready', isRedirectToCreateAccount)
+          this.$emit('sync-user-profile-ready')
 
           resolve()
         }
