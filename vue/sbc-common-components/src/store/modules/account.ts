@@ -110,10 +110,16 @@ export default class AccountModule extends VuexModule {
 
   @Action({ rawError: true })
   public async getCurrentUserProfile () {
-    const response = await UserService.getUserProfile('@me')
-    const userProfile = response?.data || {}
-    this.context.commit('user/setUserProfile', userProfile, { root: true })
-    return userProfile
+    try {
+      const response = await UserService.getUserProfile('@me')
+      const userProfile = response?.data || {}
+      this.context.commit('user/setUserProfile', userProfile, { root: true })
+      return userProfile
+    } catch (error) {
+      // for handling the 404 while first time user login in dir search
+      // redirect to auth-web for first time logins from other apps, even if user is 404
+      console.error('Error: ', error?.response)
+    }
   }
 
   @Action({ rawError: true })

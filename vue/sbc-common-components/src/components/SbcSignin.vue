@@ -74,7 +74,7 @@ export default class SbcSignin extends NavigationMixin {
 
             const currentUser = await this.getCurrentUserProfile()
 
-            if ((userInfo?.loginSource !== LoginSource.IDIR) && !currentUser?.userTerms?.isTermsOfUseAccepted) {
+            if ((userInfo?.loginSource !== LoginSource.IDIR) && !(currentUser?.userTerms?.isTermsOfUseAccepted)) {
               console.log('[SignIn.vue]Redirecting. TOS not accepted')
               this.redirectToPath(this.inAuth, Pages.USER_PROFILE_TERMS)
             } else if (isRedirectToCreateAccount) {
