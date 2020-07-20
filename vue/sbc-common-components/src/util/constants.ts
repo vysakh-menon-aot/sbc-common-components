@@ -40,6 +40,7 @@ export enum Pages {
   USER_PROFILE = 'userprofile',
   ACCOUNT = 'account',
   SETTINGS = 'settings',
+  SIGNIN = 'signin',
   USER_PROFILE_TERMS = 'userprofileterms',
   CREATE_ACCOUNT = 'setup-account',
   CHOOSE_AUTH_METHOD = 'choose-authentication-method',
