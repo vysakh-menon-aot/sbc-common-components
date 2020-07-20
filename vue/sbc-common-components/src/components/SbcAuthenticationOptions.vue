@@ -46,7 +46,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator'
-import { IdpHint, LoginSource, Pages } from '@/util/constants'
+import { IdpHint, LoginSource, Pages } from '../util/constants'
 import NavigationMixin from '../mixins/navigation-mixin'
 
 @Component({})
@@ -90,7 +90,7 @@ export default class SbcAuthenticationOptions extends NavigationMixin {
 </script>
 
 <style lang="scss" scoped>
-@import '$assets/scss/theme.scss';
+@import "../assets/scss/theme.scss";
 
 .view-container {
   max-width: 60rem;
@@ -100,7 +100,7 @@ export default class SbcAuthenticationOptions extends NavigationMixin {
   .account-type__icon {
     .v-icon {
       font-size: 4rem;
-      color: var(--v-primary-base) !important;
+      color: $BCgovBlue5 !important;
     }
   }
   .account-type__title {
