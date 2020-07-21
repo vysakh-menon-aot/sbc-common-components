@@ -1,42 +1,48 @@
 <template>
   <v-container class="view-container">
-    <div class="view-header flex-column mb-10">
+    <div class="view-header flex-column mb-9">
       <h1 class="view-header__title">Log in to BC Registries</h1>
-      <p class="mt-2 mb-3">Don't have a BC Registries account?
-        <a class="text-decoration-underline" @click="goToCreateAccount">Create an account</a>
+      <p class="mt-4 mb-0">
+        Don't have a BC Registries account? <a class="text-decoration-underline" @click="goToCreateAccount">Create an account</a>
       </p>
     </div>
     <v-row>
       <v-col
+        sm="12"
+        md="6"
         class="d-flex align-stretch"
-        sm="12" md="6"
         v-for="authOption in authOptions"
         :key="authOption.type"
       >
         <v-card
           flat
-          class="account-card text-center pa-7 d-flex flex-column"
+          outlined
+          hover
+          class="account-card text-center pa-10 elevation-2 d-flex"
+          @click="selectAuthType(authOption)"
         >
-          <div class="account-type__icon mb-6 mt-2">
-            <v-icon>{{authOption.icon}}</v-icon>
-          </div>
-          <div class="account-type__title mb-8">
-            {{authOption.title}}
-          </div>
-          <div class="account-type__details mb-8 mx-6">
-            {{authOption.description}}
-          </div>
-          <div class="mt-10 mb-2">
-            <v-btn
-              large
-              depressed
-              block
-              color="primary"
-              class="font-weight-bold"
-              @click="selectAuthType(authOption)"
-            >
-              {{ authOption.btnLabel }}
-            </v-btn>
+          <div class="account-type d-flex flex-column">
+            <div class="account-type__icon mb-8">
+              <v-icon>{{authOption.icon}}</v-icon>
+            </div>
+            <div class="account-type__title mb-6">
+              {{authOption.title}}
+            </div>
+            <div class="account-type__details mb-12">
+              {{authOption.description}}
+            </div>
+            <div>
+              <v-btn
+                large
+                depressed
+                block
+                color="primary"
+                class="font-weight-bold"
+                @click="selectAuthType(authOption)"
+              >
+                {{ authOption.btnLabel }}
+              </v-btn>
+            </div>
           </div>
         </v-card>
       </v-col>
@@ -60,7 +66,7 @@ export default class SbcAuthenticationOptions extends NavigationMixin {
       title: 'BC Services Card',
       description: `Residents of British Columbia can use their government-issued 
                     BC Services Card to securly access BC Registries.`,
-      icon: 'mdi-smart-card-outline',
+      icon: 'mdi-account-card-details-outline',
       btnLabel: 'Log in with BC Services Card',
       idpHint: IdpHint.BCSC
     },
@@ -90,22 +96,50 @@ export default class SbcAuthenticationOptions extends NavigationMixin {
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/scss/theme.scss";
+  .view-container {
+    max-width: 60rem;
+  }
 
-.view-container {
-  max-width: 60rem;
-}
+  .account-card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: all ease-out 0.2s;
 
-.account-card {
-  .account-type__icon {
-    .v-icon {
-      font-size: 4rem;
-      color: $BCgovBlue5 !important;
+    &:hover {
+      border-color: var(--v-primary-base) !important;
+
+      .v-icon {
+        color: var(--v-primary-base) !important;
+      }
     }
   }
-  .account-type__title {
-    font-size: 1.5rem;
-    font-weight: 600;
+
+  .theme--light.v-card.v-card--outlined.active {
+    border-color: var(--v-primary-base);
   }
-}
+
+  .account-card .v-icon {
+    color: var(--v-grey-lighten1) !important;
+    font-size: 3rem !important;
+  }
+
+  .account-type {
+    flex: 1 1 auto;
+  }
+
+  .account-type__icon {
+    flex: 0 0 auto;
+  }
+
+  .account-type__title {
+    flex: 0 0 auto;
+    line-height: 1.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .account-type__details {
+    flex: 1 1 auto;
+  }
 </style>

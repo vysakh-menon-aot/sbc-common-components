@@ -238,7 +238,7 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
     {
       idpHint: IdpHint.BCSC,
       option: 'BC Services Card',
-      icon: 'mdi-smart-card-outline'
+      icon: 'mdi-account-card-details-outline'
     },
     {
       idpHint: IdpHint.BCEID,
