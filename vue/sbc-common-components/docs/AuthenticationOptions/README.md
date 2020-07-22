@@ -34,4 +34,17 @@ import SbcAuthenticationOptions from 'sbc-common-components/src/components/SbcAu
 </template>
 ```
 
+***If there is a redirect url once login is completed***
+
+
+```
+<template>
+  <div>
+    <SbcAuthenticationOptions
+      :redirect-url="redirectUrlLink"
+    ></SbcAuthenticationOptions>
+  </div>
+</template>
+```
+
 
