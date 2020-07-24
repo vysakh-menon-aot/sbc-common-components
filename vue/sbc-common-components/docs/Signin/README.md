@@ -63,15 +63,14 @@ import SbcSignin from 'sbc-common-components/src/components/SbcSignin.vue'
  
 ### **use it in the template**
 
-The component accepts **idp-hint** and **redirect-url-login-fail** as input props, and outputs two events: **keycloak-session-ready** and **sync-user-profile-ready**
+The component accepts **idp-hint** and **redirect-url-login-fail** as input props, and output an event **sync-user-profile-ready** which emits once the signin process is completed.
 
 ```html
 <template>
   <sbc-signin
     :idp-hint="idpHint"
     :redirect-url-login-fail="redirectUrlLoginFail"
-    @keycloak-session-ready="updateHeader()"
-    @sync-user-profile-ready="syncUserProfile()"
+    @sync-user-profile-ready="authenticationComplete"
   ></sbc-signin>
 ```
 
@@ -79,5 +78,4 @@ The component accepts **idp-hint** and **redirect-url-login-fail** as input prop
 | --- | --- | --- | 
 | **idp-hint** | string | name/keyword of the identity provider you are using. (default: bcsc)
 | **redirect-url-login-fail** | string | optional url to redirect if the keycloak login failed (default: '')
-| **keycloak-session-ready** | event | this event will get emitted when the keycloak is authenticated and synced keycloak session values, you can update the header or load the userprofiles once this event is emitted.
-| **sync-user-profile-ready** | event | this event will get emitted if the idpHint is 'bcsc' and keycloak initializations is complete. You can sync your user profile from application services.
+| **sync-user-profile-ready** | event | this event will get emitted once the login process in the keycloak is completed. You can sync your user profile from application services.
