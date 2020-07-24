@@ -46,7 +46,15 @@ class KeyCloakService {
       }
       return kcLogin(options)
     }
-    return this.kc.init({ token: token, onLoad: 'login-required' })
+    let kcOptions :KeycloakInitOptions = {
+      onLoad: 'login-required',
+      checkLoginIframe: false,
+      timeSkew: 0,
+      token,
+      refreshToken: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakRefreshToken) || undefined,
+      idToken: ConfigHelper.getFromSession(SessionStorageKeys.KeyCloakIdToken) || undefined
+    }
+    return this.kc.init(kcOptions)
   }
 
   async initSession () {
