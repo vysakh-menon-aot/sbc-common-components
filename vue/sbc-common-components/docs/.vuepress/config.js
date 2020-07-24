@@ -19,8 +19,9 @@ module.exports = {
           '/Footer/',
           '/Layout/',
           '/FeeCalculator/',
+          '/AuthenticationOptions/',
           '/BaseAddress/',
-          '/TokenService/',
+          '/TokenService(Deprecated)/',
           '/Signin/',
           '/Signout/',
         ]
