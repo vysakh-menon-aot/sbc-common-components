@@ -1,4 +1,4 @@
-# TokenService
+# TokenService (Deprecated)
 
 This is an abstraction over they keycloak javascript adapter providing some methods to refresh the token.
 The abstraction is provided so that COOPS-UI project or any other consumer of auth-web can stay independent of keycloak logic.
