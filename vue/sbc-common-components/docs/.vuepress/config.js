@@ -21,6 +21,7 @@ module.exports = {
           '/FeeCalculator/',
           '/AuthenticationOptions/',
           '/BaseAddress/',
+          '/KeycloakService/',
           '/TokenService(Deprecated)/',
           '/Signin/',
           '/Signout/',
