@@ -1,12 +1,53 @@
 <template>
-    <v-dialog v-model="dialog" fullscreen hide-overlay transition="scroll-y-transition">
+    <v-menu
+      fixed
+      bottom
+      left
+      transition="slide-y-transition"
+      attach="#appHeader"
+      v-model="dialog"
+    >
       <template v-slot:activator="{ on }">
-        <v-btn text dark large class="product-select-btn mobile-icon-only pr-2 pl-2" v-on="on" data-test="product-selector-btn">
-          <v-icon class="ml-n1">mdi-apps</v-icon>
-          <span>Products & Services</span>
+        <v-btn
+          large
+          text
+          dark
+          class="mobile-icon-only px-2"
+          aria-label="products and services"
+          v-on="on"
+          data-test="product-selector-btn"
+        >
+          <v-icon>mdi-apps</v-icon>
+          <span>
+            Products & Services
+          </span>
+          <v-icon class="ml-1">
+            mdi-menu-down
+          </v-icon>
         </v-btn>
       </template>
-      <v-card tile flat dark color="#003366">
+
+      <v-card>
+        <div class="menu-header">
+          <v-card-title class="body-1">
+            Products & Services
+          </v-card-title>
+          <v-divider></v-divider>
+        </div>
+        <v-list>
+          <v-list-item
+            v-for="(product, index) in products"
+            :key="index" @click="goToProductPage(product)"
+          >
+            <v-list-item-title class="body-2">
+              {{product.name}}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-card>
+
+      <!-- Full Screen Product Selector -->
+      <v-card tile flat dark color="#003366" style="display: none;">
         <header class="app-header">
           <div class="container">
             <a class="brand">
@@ -23,9 +64,6 @@
               <span class="brand__title">BC Registries <span class="brand__title--wrap">& Online Services</span></span>
             </a>
             <div class="app-header__actions">
-              <v-btn text large class="close-btn pr-4 pl-3" @click="dialog = false" data-test="close-btn">
-                <span>Close</span>
-              </v-btn>
             </div>
           </div>
         </header>
@@ -37,6 +75,11 @@
             <div>
               <h1>BC Registries Products <span class="lb">&amp; Services</span></h1>
               <p class="view-header__desc">Easy access to a wide range of information products and services, including access <span class="ls">to British Columbia Provincial and Municipal Government information.</span></p>
+            </div>
+            <div>
+              <v-btn text large class="close-btn pr-4 pl-3" @click="dialog = false" data-test="close-btn">
+                <span>Close</span>
+              </v-btn>
             </div>
           </div>
 
@@ -60,7 +103,8 @@
           </section>
         </v-container>
       </v-card>
-    </v-dialog>
+
+    </v-menu>
 </template>
 
 <script lang="ts">
@@ -209,7 +253,6 @@ section + section {
 }
 
 // Product Selector Button
-.product-selector-btn,
 .close-btn {
   font-weight: 700;
 }
@@ -348,12 +391,17 @@ section + section {
   font-weight: 700;
 }
 
-@media (max-width: 600px) {
+.menu-header {
+  display: none;
+}
+
+@media (max-width: 1263px) {
   .v-btn.mobile-icon-only {
     min-width: 3rem !important;
     width: 3rem;
 
-    .v-icon +  span {
+    .v-icon + span,
+    span + .v-icon {
       display: none;
     }
 
@@ -361,6 +409,14 @@ section + section {
       margin-right: 0;
     }
   }
+  .menu-header {
+    display: block;
+  }
 }
 
+@media (min-width: 1264px) {
+  .menu-header {
+    display: none;
+  }
+}
 </style>
