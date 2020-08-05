@@ -234,34 +234,45 @@
             <v-divider></v-divider>
 
             <!-- Switch Account -->
-            <v-list
-              tile
-              dense
-              v-if="!isIDIR && switchableAccounts.length > 1"
-            >
-              <v-subheader>SWITCH ACCOUNT</v-subheader>
-              <v-list-item
-                color="primary"
-                :class="{'v-list-item--active' : settings.id === currentAccount.id}"
-                v-for="(settings, id) in switchableAccounts"
-                :key="id"
-                @click="switchAccount(settings, inAuth)"
+            <div v-if="!isIDIR">
+              <v-list
+                tile
+                dense
+                v-if="switchableAccounts.length > 1"
               >
-                <v-list-item-icon left>
-                  <v-icon v-show="settings.id === currentAccount.id">mdi-check</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>{{ settings.label }}</v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="currentLoginSource != 'BCIED'" @click="goToCreateBCSCAccount()">
-                <v-list-item-icon left>
-                  <v-icon>mdi-plus</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title
+                <v-subheader>SWITCH ACCOUNT</v-subheader>
+                <v-list-item
+                  color="primary"
+                  :class="{'v-list-item--active' : settings.id === currentAccount.id}"
+                  v-for="(settings, id) in switchableAccounts"
+                  :key="id"
+                  @click="switchAccount(settings, inAuth)"
                 >
-                  Create account
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
+                  <v-list-item-icon left>
+                    <v-icon v-show="settings.id === currentAccount.id">mdi-check</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>{{ settings.label }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+
+              <v-divider></v-divider>
+
+              <!-- Create a New Account -->
+              <v-list
+                tile
+                dense
+                v-if="!isBceid">
+                <v-list-item @click="goToCreateBCSCAccount()">
+                  <v-list-item-icon left>
+                    <v-icon>mdi-plus</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title
+                  >
+                    Create account
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </div>
           </v-card>
         </v-menu>
 
