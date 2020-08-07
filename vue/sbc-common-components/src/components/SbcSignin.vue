@@ -49,7 +49,7 @@ export default class SbcSignin extends NavigationMixin {
   @Prop({ default: false }) inAuth!: boolean;
   private readonly loadUserInfo!: () => KCUserProfile
   private readonly syncAccount!: () => Promise<void>
-  private readonly getCurrentUserProfile!: () => Promise<any>
+  private readonly getCurrentUserProfile!: (isAuth: boolean) => Promise<any>
 
   private async mounted () {
     getModule(AccountModule, this.$store)
@@ -72,7 +72,7 @@ export default class SbcSignin extends NavigationMixin {
             // redirect to create account page if the user has no 'account holder' role
             const isRedirectToCreateAccount = (userInfo.roles.includes(Role.PublicUser) && !userInfo.roles.includes(Role.AccountHolder))
 
-            const currentUser = await this.getCurrentUserProfile()
+            const currentUser = await this.getCurrentUserProfile(this.inAuth)
 
             if ((userInfo?.loginSource !== LoginSource.IDIR) && !(currentUser?.userTerms?.isTermsOfUseAccepted)) {
               console.log('[SignIn.vue]Redirecting. TOS not accepted')
