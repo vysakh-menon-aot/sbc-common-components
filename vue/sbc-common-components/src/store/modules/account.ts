@@ -109,11 +109,13 @@ export default class AccountModule extends VuexModule {
   }
 
   @Action({ rawError: true })
-  public async getCurrentUserProfile () {
+  public async getCurrentUserProfile (isAuth: boolean = false) {
     try {
       const response = await UserService.getUserProfile('@me')
       const userProfile = response?.data || {}
-      this.context.commit('user/setUserProfile', userProfile, { root: true })
+      if (isAuth) {
+        this.context.commit('user/setUserProfile', userProfile, { root: true })
+      }
       return userProfile
     } catch (error) {
       // for handling the 404 while first time user login in dir search
