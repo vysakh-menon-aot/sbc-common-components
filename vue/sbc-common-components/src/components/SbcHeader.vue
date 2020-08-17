@@ -476,7 +476,7 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
     this.$emit('account-switch-completed')
 
     if (!inAuth) {
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}${Pages.HOME}`)
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}/${Pages.HOME}`)
     }
   }
 
