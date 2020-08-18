@@ -383,13 +383,8 @@ export default class SbcHeader extends Mixins(NavigationMixin) {
     }
   ]
 
-  get showAccountSwitching (): boolean {
-    return LaunchDarklyService.getFlag('account-switching') || false
-  }
-
   get showTransactions (): boolean {
-    return (LaunchDarklyService.getFlag('transaction-history') || false) &&
-      (this.currentAccount?.accountType === Account.PREMIUM)
+    return this.currentAccount?.accountType === Account.PREMIUM
   }
 
   get isIDIR (): boolean {
