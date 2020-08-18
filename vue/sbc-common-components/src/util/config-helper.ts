@@ -1,5 +1,5 @@
 import { SessionStorageKeys } from './constants'
-import TokenService from '../services/token.services'
+import { trimTrailingSlashURL } from './common-util'
 
 export default class ConfigHelper {
   static keycloakConfigUrl: string = ''
@@ -21,17 +21,17 @@ export default class ConfigHelper {
 
   static getStatusAPIUrl (): string {
     const apiConfig = JSON.parse(sessionStorage.getItem(SessionStorageKeys.ApiConfigKey) || '{}')
-    return apiConfig ? apiConfig['VUE_APP_STATUS_ROOT_API'] : ''
+    return trimTrailingSlashURL(apiConfig ? apiConfig['VUE_APP_STATUS_ROOT_API'] : '')
   }
 
   static getAuthAPIUrl (): string {
     const apiConfig = JSON.parse(sessionStorage.getItem(SessionStorageKeys.ApiConfigKey) || '{}')
-    return (apiConfig && apiConfig['VUE_APP_AUTH_ROOT_API']) || sessionStorage.getItem(SessionStorageKeys.AuthApiUrl) || ''
+    return trimTrailingSlashURL((apiConfig && apiConfig['VUE_APP_AUTH_ROOT_API']) || sessionStorage.getItem(SessionStorageKeys.AuthApiUrl) || '')
   }
 
   static getAuthContextPath (): string {
     const apiConfig = JSON.parse(sessionStorage.getItem(SessionStorageKeys.ApiConfigKey) || '{}')
-    return (apiConfig && apiConfig['AUTH_URL']) || sessionStorage.getItem('AUTH_URL') || ''
+    return trimTrailingSlashURL((apiConfig && apiConfig['AUTH_URL']) || sessionStorage.getItem('AUTH_URL') || '')
   }
 
   static setKeycloakConfigUrl (keycloakConfigUrl: string) {

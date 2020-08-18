@@ -39,3 +39,7 @@ export function decodeKCToken () {
     throw new Error('Error parsing JWT - ' + error)
   }
 }
+
+export function trimTrailingSlashURL (url) {
+  return (url) ? url.trim().replace(/\/+$/, '') : ''
+}

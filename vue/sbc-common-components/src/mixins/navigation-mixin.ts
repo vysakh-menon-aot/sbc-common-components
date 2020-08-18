@@ -9,10 +9,10 @@ export default class NavigationMixin extends Vue {
       if (resolvedRoutes.resolved.matched.length > 0) {
         this.$router.push(`/${routePath}`)
       } else {
-        window.location.assign(`${ConfigHelper.getAuthContextPath()}${routePath}`)
+        window.location.assign(`${ConfigHelper.getAuthContextPath()}/${routePath}`)
       }
     } else {
-      window.location.assign(`${ConfigHelper.getAuthContextPath()}${routePath}`)
+      window.location.assign(`${ConfigHelper.getAuthContextPath()}/${routePath}`)
     }
   }
 }
