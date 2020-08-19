@@ -9,17 +9,26 @@
           <li><a href="https://www2.gov.bc.ca/gov/content/home/accessibility" target="_blank">Accessibility</a></li>
           <li><a href="https://www2.gov.bc.ca/gov/content/home/copyright" target="_blank">Copyright</a></li>
         </ul>
+        <v-tooltip left nudge-top="30" v-if="aboutText" attach=".app-footer">
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon icon v-bind="attrs" v-on="on" color="#8099b3">mdi-information-outline</v-icon>
+          </template>
+          <div v-html="aboutText"></div>
+        </v-tooltip>
       </nav>
     </div>
   </footer>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import { Component, Vue, Prop } from 'vue-property-decorator'
 
-export default Vue.extend({
-  name: 'sbc-footer'
-})
+@Component({})
+export default class SbcFooter extends Vue {
+  /** Optional About text. */
+  @Prop({ default: '' })
+  private aboutText: string
+}
 </script>
 
 <style lang="scss" scoped>
@@ -35,8 +44,10 @@ export default Vue.extend({
   }
 
   nav {
+    display: flex;
+    justify-content: space-between;
+
     ul {
-      margin: -0.5rem;
       padding: 0;
       list-style-type: none;
     }
@@ -72,6 +83,15 @@ export default Vue.extend({
           padding: 0.25rem 0.5rem;
         }
       }
+    }
+  }
+
+  // make the tooltip opaque
+  .v-tooltip__content {
+    background: rgba($BCgovBlue3, 1) !important;
+
+    &.menuable__content__active {
+      opacity: 1!important;
     }
   }
 </style>
