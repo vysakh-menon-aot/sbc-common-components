@@ -1,7 +1,9 @@
 # Footer Component
 
 Standard footer component.
-Use Layout for most of the cases.Use Header alone when you need it alone
+Use Layout for most of the cases.
+Use Footer alone when you need it alone.
+
 ### Prerequisites
 
  [How To Install the dependency](../install/README.md) 
@@ -39,7 +41,7 @@ export default {
         </div>
       </div>
     </div>
-    <SbcFooter></SbcFooter>
+    <sbc-footer :aboutText="My App<hr>Version 1.0.0"></sbc-footer>
   </v-app>
 </template>
 ```
