@@ -37,7 +37,8 @@ import NavigationMixin from '../mixins/navigation-mixin'
       ...mapActions('account', [
         'loadUserInfo',
         'syncAccount',
-        'getCurrentUserProfile'
+        'getCurrentUserProfile',
+        'updateUserProfile'
       ])
     }
   }
@@ -50,6 +51,7 @@ export default class SbcSignin extends NavigationMixin {
   private readonly loadUserInfo!: () => KCUserProfile
   private readonly syncAccount!: () => Promise<void>
   private readonly getCurrentUserProfile!: (isAuth: boolean) => Promise<any>
+  private readonly updateUserProfile!: () => Promise<void>
 
   private async mounted () {
     getModule(AccountModule, this.$store)
@@ -64,6 +66,10 @@ export default class SbcSignin extends NavigationMixin {
           await KeyCloakService.initSession()
           // tell KeycloakServices to load the user info
           const userInfo = await this.loadUserInfo()
+
+          //update user profile
+          await this.updateUserProfile()
+
           // sync the account if there is one
           await this.syncAccount()
 
