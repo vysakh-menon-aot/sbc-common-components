@@ -149,4 +149,9 @@ export default class AccountModule extends VuexModule {
         }
     }
   }
+
+  @Action({ rawError: true })
+  public async updateUserProfile () {
+    await UserService.updateUserProfile()
+  }
 }
