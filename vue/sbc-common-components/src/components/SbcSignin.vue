@@ -67,7 +67,7 @@ export default class SbcSignin extends NavigationMixin {
           // tell KeycloakServices to load the user info
           const userInfo = await this.loadUserInfo()
 
-          //update user profile
+          // update user profile
           await this.updateUserProfile()
 
           // sync the account if there is one
