@@ -11,6 +11,6 @@ export default class UserService {
   }
 
   static async updateUserProfile (): Promise<AxiosResponse<UserProfile>> {
-    return axios.post(`${ConfigHelper.getAuthAPIUrl()}/users`, {'isLogin': true})
+    return axios.post(`${ConfigHelper.getAuthAPIUrl()}/users`, { 'isLogin': true })
   }
 }

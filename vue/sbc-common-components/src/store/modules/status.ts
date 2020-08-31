@@ -9,7 +9,9 @@ import StatusService from '../../services/status.services'
 export default class StatusModule extends VuexModule {
   paySystemStatus: ServiceStatus = {
     currentStatus: true,
-    nextUpTime: new Date()
+    nextUpTime: new Date(),
+    message: null,
+    customMessage: null
   }
 
   @Mutation

@@ -5,4 +5,6 @@
 export interface ServiceStatus {
     currentStatus: boolean
     nextUpTime: Date
+    message: string
+    customMessage: string
 }

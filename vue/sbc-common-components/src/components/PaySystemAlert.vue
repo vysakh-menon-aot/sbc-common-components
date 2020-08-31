@@ -1,7 +1,7 @@
 <template>
   <sbc-system-banner
-    v-if="isPaySystemDown"
-    v-bind:show="isPaySystemDown"
+    v-if="hasPayMessage"
+    v-bind:show="hasPayMessage"
     type="warning"
     v-bind:message="alertMessage"
   ></sbc-system-banner>
@@ -73,13 +73,12 @@ export default class PaySystemAlert extends Vue {
     await this.fetchPaySystemStatus()
   }
 
-  private get isPaySystemDown () {
-    return !this.getBoolean(this.paySystemStatus && this.paySystemStatus.currentStatus)
+  private get alertMessage () {
+    return this.paySystemStatus?.customMessage ? this.paySystemStatus.customMessage : this.paySystemStatus.message
   }
 
-  private get alertMessage () {
-    // TODO once the server side sends when the system is back up , calculate it..
-    return 'Payment processing is currently not available for corporate filings.'
+  private get hasPayMessage () {
+    return !this.getBoolean(this.paySystemStatus?.currentStatus) || this.paySystemStatus?.customMessage !== undefined
   }
 }
 </script>
